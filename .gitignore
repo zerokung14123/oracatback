@@ -1,11 +1,8 @@
 .env
 .env.*
 node_modules/
-server/
 local-server.mjs
 START_LOCAL_SERVER.cmd
-package.json
-package-lock.json
 report/
 *.log
 *.tmp
