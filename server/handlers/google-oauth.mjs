@@ -96,15 +96,28 @@ async function refreshAccessToken(request, headers) {
   const refreshToken = readCookie(request.headers.get('cookie') || '', COOKIE_NAME);
   if (!refreshToken) return json({ error: 'Missing refresh session' }, 401, headers);
 
-  const tokens = await tokenRequest({
-    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
-    client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-    refresh_token: refreshToken,
-    grant_type: 'refresh_token',
-  });
+  let tokens;
+  try {
+    tokens = await tokenRequest({
+      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
+      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    });
+  } catch (error) {
+    console.warn('Google OAuth refresh failed; clearing refresh cookie:', error?.message || error);
+    return json({ error: 'Refresh session expired' }, 401, {
+      ...headers,
+      'Set-Cookie': clearCookie(),
+    });
+  }
   const user = await fetchUser(tokens.access_token);
-  if (!user?.sub) return json({ error: 'Google profile did not include user id' }, 401, headers);
-  if (!user?.email) return json({ error: 'Google profile did not include email' }, 401, headers);
+  if (!user?.sub || !user?.email) {
+    return json({ error: 'Refresh profile invalid' }, 401, {
+      ...headers,
+      'Set-Cookie': clearCookie(),
+    });
+  }
   const firebase = await createFirebaseLogin(user);
   return json(publicTokenPayload(tokens, user, firebase), 200, {
     ...headers,
