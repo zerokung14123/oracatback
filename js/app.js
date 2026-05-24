@@ -170,8 +170,21 @@ async function handleLoginGateAuth() {
 
   setLoginGateStatus('รอการยืนยันจาก Google...');
   window.setTimeout(() => {
-    if (!window.firebaseData?.currentUser?.()) updateLoginGate(null);
+    if (!window.firebaseData?.currentUser?.()) {
+      const message = getGoogleLoginTimeoutMessage();
+      updateLoginGate(null, { message });
+      showToast?.(message, 'error');
+    }
   }, 20000);
+}
+
+function getGoogleLoginTimeoutMessage() {
+  const origin = window.location.origin;
+  const runtimeError = window.runtimeConfigState?.error;
+  const clientId = String(window.CONFIG?.GOOGLE_OAUTH_CLIENT_ID || '').trim();
+  if (runtimeError) return `Google Login ยังไม่สำเร็จ: ${runtimeError}`;
+  if (!clientId) return 'Google Login ยังไม่สำเร็จ: ไม่พบ GOOGLE_OAUTH_CLIENT_ID จาก backend config';
+  return `Google Login ยังไม่สำเร็จ: ตรวจ Firebase Authentication, Netlify Function logs และ OAuth origin ${origin}`;
 }
 
 function testNoticeSessionKey(user) {

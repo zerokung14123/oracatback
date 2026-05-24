@@ -70,13 +70,19 @@ async function exchangeCode(request, body, headers) {
     return json({ error: 'Invalid redirect URI' }, 403, headers);
   }
 
-  const tokens = await tokenRequest({
-    code,
-    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
-    client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-    redirect_uri: redirectUri,
-    grant_type: 'authorization_code',
-  });
+  let tokens;
+  try {
+    tokens = await tokenRequest({
+      code,
+      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
+      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    });
+  } catch (error) {
+    console.warn('Google OAuth code exchange failed:', error?.message || error);
+    return json({ error: `Google token exchange failed: ${safeErrorMessage(error)}` }, 400, headers);
+  }
 
   const user = await fetchUser(tokens.access_token);
   if (!user?.sub) return json({ error: 'Google profile did not include user id' }, 401, headers);
@@ -203,6 +209,12 @@ function firebaseServiceAccount() {
 
 function normalizePrivateKey(value) {
   return String(value || '').replace(/\\n/g, '\n');
+}
+
+function safeErrorMessage(error) {
+  return String(error?.message || error || 'Bad Request')
+    .replace(/client_secret=[^&\s]+/gi, 'client_secret=REDACTED')
+    .slice(0, 240);
 }
 
 function userRecord(user) {

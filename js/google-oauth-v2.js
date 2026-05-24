@@ -208,7 +208,10 @@ const googleOAuthV3 = (() => {
     });
     window.applyGoogleAccessToken?.(payload.access_token, { source: 'oauth-v3' });
     if (payload.firebase_custom_token && window.firebaseData?.signInWithCustomToken) {
-      await window.firebaseData.signInWithCustomToken(payload.firebase_custom_token);
+      const firebaseUser = await window.firebaseData.signInWithCustomToken(payload.firebase_custom_token);
+      if (!firebaseUser) {
+        throw new Error('Firebase custom token sign-in did not return a user');
+      }
     }
     updateLabel();
   }
