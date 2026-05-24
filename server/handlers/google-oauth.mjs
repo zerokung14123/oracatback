@@ -87,7 +87,13 @@ async function exchangeCode(request, body, headers) {
   const user = await fetchUser(tokens.access_token);
   if (!user?.sub) return json({ error: 'Google profile did not include user id' }, 401, headers);
   if (!user?.email) return json({ error: 'Google profile did not include email' }, 401, headers);
-  const firebase = await createFirebaseLogin(user);
+  let firebase;
+  try {
+    firebase = await createFirebaseLogin(user);
+  } catch (error) {
+    console.error('Firebase custom token creation failed:', error);
+    return json({ error: `Firebase login failed: ${safeErrorMessage(error)}` }, 500, headers);
+  }
   const responseHeaders = { ...headers };
   if (tokens.refresh_token) {
     responseHeaders['Set-Cookie'] = refreshCookie(tokens.refresh_token);
@@ -124,7 +130,16 @@ async function refreshAccessToken(request, headers) {
       'Set-Cookie': clearCookie(),
     });
   }
-  const firebase = await createFirebaseLogin(user);
+  let firebase;
+  try {
+    firebase = await createFirebaseLogin(user);
+  } catch (error) {
+    console.error('Firebase custom token refresh failed:', error);
+    return json({ error: `Firebase login failed: ${safeErrorMessage(error)}` }, 500, {
+      ...headers,
+      'Set-Cookie': clearCookie(),
+    });
+  }
   return json(publicTokenPayload(tokens, user, firebase), 200, {
     ...headers,
     'Set-Cookie': refreshCookie(refreshToken),

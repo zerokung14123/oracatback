@@ -226,20 +226,25 @@ function updateFirebaseAuthUI(user = firebaseState.user) {
 
 async function signInFirebaseWithCustomToken(customToken) {
   if (!firebaseState.auth) {
+    window.__lastGoogleLoginError = 'Firebase client ยังไม่พร้อม: กรุณาตรวจ Firebase config';
     showToast('กรุณาใส่ Firebase config ใน js/config.js ก่อน', 'error');
     return null;
   }
   if (!customToken) {
+    window.__lastGoogleLoginError = 'ไม่พบ Firebase custom token จาก backend';
     showToast('ไม่พบ Firebase custom token จาก backend', 'error');
     return null;
   }
 
   try {
     const result = await signInWithCustomToken(firebaseState.auth, customToken);
+    window.__lastGoogleLoginError = '';
     return result.user;
   } catch (e) {
     console.error('Firebase custom-token sign-in failed:', e);
-    showToast('เข้าสู่ระบบ Firebase จาก backend ไม่สำเร็จ: ' + (e.message || e), 'error');
+    const message = 'เข้าสู่ระบบ Firebase จาก backend ไม่สำเร็จ: ' + (e.message || e);
+    window.__lastGoogleLoginError = message;
+    showToast(message, 'error');
     return null;
   }
 }

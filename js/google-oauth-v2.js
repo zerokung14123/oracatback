@@ -55,6 +55,16 @@ const googleOAuthV3 = (() => {
     return 'Google OAuth ล้มเหลว: ' + message;
   }
 
+  function setLastLoginError(error) {
+    const message = oauthErrorMessage(error);
+    window.__lastGoogleLoginError = message;
+    return message;
+  }
+
+  function clearLastLoginError() {
+    window.__lastGoogleLoginError = '';
+  }
+
   function readSession() {
     try {
       return JSON.parse(localStorage.getItem(STATE_KEY) || '{}') || {};
@@ -142,20 +152,26 @@ const googleOAuthV3 = (() => {
       include_granted_scopes: true,
       callback: async response => {
         if (response.error) {
-          showToast('Google OAuth ล้มเหลว: ' + response.error, 'error');
+          const message = setLastLoginError(response.error);
+          window.updateLoginGate?.(null, { message });
+          showToast(message, 'error');
           return;
         }
         try {
           await exchangeCode(response.code);
         } catch (error) {
           console.error('Google OAuth exchange failed:', error);
-          showToast(oauthErrorMessage(error), 'error');
+          const message = setLastLoginError(error);
+          window.updateLoginGate?.(null, { message });
+          showToast(message, 'error');
         }
       },
       error_callback: error => {
         console.error('Google OAuth popup failed:', error);
         const message = error?.type || error?.message || 'popup ถูกปิดหรือถูกบล็อก';
-        showToast('Google OAuth ล้มเหลว: ' + message, 'error');
+        const loginMessage = setLastLoginError(message);
+        window.updateLoginGate?.(null, { message: loginMessage });
+        showToast(loginMessage, 'error');
       },
     });
     return codeClient;
@@ -189,6 +205,7 @@ const googleOAuthV3 = (() => {
   async function exchangeCode(code) {
     if (!code) throw new Error('Missing authorization code');
     markActivity();
+    clearLastLoginError();
     const payload = await postTokenAction({
       action: 'exchange',
       code,
@@ -200,19 +217,34 @@ const googleOAuthV3 = (() => {
   }
 
   async function applyTokenPayload(payload) {
+    if (!payload?.access_token) {
+      throw new Error('OAuth backend did not return an access token');
+    }
+
     const expiresIn = Number(payload.expires_in || 3600);
+    window.applyGoogleAccessToken?.(payload.access_token, { source: 'oauth-v3' });
+
+    if (!payload.firebase_custom_token) {
+      throw new Error('OAuth backend did not return a Firebase custom token');
+    }
+    if (!window.firebaseData?.signInWithCustomToken) {
+      throw new Error('Firebase client is not ready for custom token sign-in');
+    }
+
+    const firebaseUser = await window.firebaseData.signInWithCustomToken(payload.firebase_custom_token);
+    if (!firebaseUser) {
+      throw new Error(window.__lastGoogleLoginError || 'Firebase custom token sign-in did not return a user');
+    }
+
     writeSession({
       accessToken: payload.access_token,
       expiresAt: Date.now() + Math.max(30, expiresIn - 60) * 1000,
-      user: payload.user || null,
+      user: {
+        email: firebaseUser.email || payload.user?.email || '',
+        displayName: firebaseUser.displayName || payload.user?.name || '',
+        uid: firebaseUser.uid || payload.firebase_uid || '',
+      },
     });
-    window.applyGoogleAccessToken?.(payload.access_token, { source: 'oauth-v3' });
-    if (payload.firebase_custom_token && window.firebaseData?.signInWithCustomToken) {
-      const firebaseUser = await window.firebaseData.signInWithCustomToken(payload.firebase_custom_token);
-      if (!firebaseUser) {
-        throw new Error('Firebase custom token sign-in did not return a user');
-      }
-    }
     updateLabel();
   }
 
@@ -239,6 +271,7 @@ const googleOAuthV3 = (() => {
   async function login() {
     if (!enforceIdleTimeout()) return false;
     try {
+      clearLastLoginError();
       if (hasStaticFirebaseAuth()) {
         return await loginWithFirebasePopup();
       }
@@ -247,7 +280,9 @@ const googleOAuthV3 = (() => {
       return true;
     } catch (error) {
       console.error('Google OAuth login failed:', error);
-      showToast(oauthErrorMessage(error), 'error');
+      const message = setLastLoginError(error);
+      window.updateLoginGate?.(null, { message });
+      showToast(message, 'error');
       return false;
     }
   }

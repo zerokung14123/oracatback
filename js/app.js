@@ -180,8 +180,10 @@ async function handleLoginGateAuth() {
 
 function getGoogleLoginTimeoutMessage() {
   const origin = window.location.origin;
+  const lastLoginError = String(window.__lastGoogleLoginError || '').trim();
   const runtimeError = window.runtimeConfigState?.error;
   const clientId = String(window.CONFIG?.GOOGLE_OAUTH_CLIENT_ID || '').trim();
+  if (lastLoginError) return lastLoginError;
   if (runtimeError) return `Google Login ยังไม่สำเร็จ: ${runtimeError}`;
   if (!clientId) return 'Google Login ยังไม่สำเร็จ: ไม่พบ GOOGLE_OAUTH_CLIENT_ID จาก backend config';
   return `Google Login ยังไม่สำเร็จ: ตรวจ Firebase Authentication, Netlify Function logs และ OAuth origin ${origin}`;
