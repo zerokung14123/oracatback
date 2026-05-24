@@ -18,6 +18,17 @@ js/config.js
 setup/hosting/README.md
 ```
 
+## Netlify Deploy
+
+ตั้งค่า Netlify แบบ static hosting:
+
+```txt
+Build command: เว้นว่าง
+Publish directory: .
+```
+
+ไฟล์ `netlify.toml` กำหนด publish directory ไว้ที่ root ของโปรเจกต์แล้ว และไฟล์ `_headers` ต้องอยู่ที่ root เพื่อให้ Netlify ใช้ security headers ตอน deploy
+
 ## สำคัญ
 
 - อย่าใส่ Google OAuth Client Secret หรือ Firebase service account ลงใน frontend
