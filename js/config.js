@@ -40,7 +40,7 @@ const CONFIG = {
     appId: '1:879037575078:web:f49a2a4d56bb8665a1e967',
     measurementId: '',
   },
-  FIREBASE_APP_CHECK_SITE_KEY: '',
+  FIREBASE_APP_CHECK_SITE_KEY: '6LfEu_osAAAAAK2QotD7bA6ZTgdQLpGtDy1B_dM5',
 
   // -----  App Settings  -----
   APP_NAME: 'Tinmeaw Manager',
