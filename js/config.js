@@ -32,15 +32,15 @@ const CONFIG = {
   // ใส่ค่าจาก Project settings → Your apps → Firebase SDK config
   // ค่า Firebase Web config เป็น public identifier ไม่ใช่ secret; ให้ป้องกันจริงด้วย Firestore Rules + App Check
   FIREBASE_CONFIG: {
-    apiKey: 'AIzaSyD1Bha-ZdHOguwN2og6wgcEhdoxML1iEKE',
-    authDomain: 'tinmeawfoto-manager.firebaseapp.com',
-    projectId: 'tinmeawfoto-manager',
-    storageBucket: 'tinmeawfoto-manager.firebasestorage.app',
-    messagingSenderId: '879037575078',
-    appId: '1:879037575078:web:f49a2a4d56bb8665a1e967',
+    apiKey: '',
+    authDomain: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: '',
     measurementId: '',
   },
-  FIREBASE_APP_CHECK_SITE_KEY: '6LfEu_osAAAAAK2QotD7bA6ZTgdQLpGtDy1B_dM5',
+  FIREBASE_APP_CHECK_SITE_KEY: '',
 
   // -----  App Settings  -----
   APP_NAME: 'Tinmeaw Manager',
