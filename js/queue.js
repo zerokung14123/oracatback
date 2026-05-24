@@ -132,8 +132,6 @@ function fillJobForm(job) {
   document.getElementById('jobPrice').value    = price ? price : '';
   document.getElementById('jobDeposit').value  = deposit ? deposit : '';
   document.getElementById('jobNote').value     = job.note || '';
-  const isCash = document.getElementById('jobIsCash');
-  if (isCash) isCash.checked = Boolean(job.isCash);
   const autoBooking = document.getElementById('jobAutoBooking');
   if (autoBooking) autoBooking.checked = Boolean(job.bookingDocument?.dataUrl);
   clearJobImageInput();
@@ -149,8 +147,6 @@ function clearJobForm() {
   document.getElementById('jobEndTime').value   = '13:00';
   document.getElementById('jobPrice').value     = '';
   document.getElementById('jobDeposit').value   = '';
-  const isCash = document.getElementById('jobIsCash');
-  if (isCash) isCash.checked = false;
   const autoBooking = document.getElementById('jobAutoBooking');
   if (autoBooking) autoBooking.checked = false;
   clearJobImageInput();
@@ -283,7 +279,6 @@ async function saveJob() {
   const existingJob = editingJobId ? jobs.find(j => j.id === editingJobId) : null;
   const newImageFiles = selectedJobImageFiles();
   const shouldGenerateBooking = Boolean(document.getElementById('jobAutoBooking')?.checked);
-  const isCash = Boolean(document.getElementById('jobIsCash')?.checked);
   let addedImageCount = 0;
 
   if (!client) { showToast('กรุณาใส่ชื่อลูกค้า', 'error'); return; }
@@ -315,7 +310,8 @@ async function saveJob() {
     location:  document.getElementById('jobLocation').value.trim(),
     price,
     deposit,
-    isCash,
+    depositRefunded: existingJob?.status === 'cancelled' && Boolean(existingJob.depositRefunded),
+    isCash: Boolean(existingJob?.isCash),
     status:    existingJob?.status || 'pending',
     note:      document.getElementById('jobNote').value.trim(),
     images: storedImages,
@@ -465,8 +461,8 @@ function renderQueueTable(filterFn = null) {
       <td class="job-time">${escHtml(j.startTime || '-')}</td>
       <td class="job-time">${escHtml(j.endTime || '-')}</td>
       <td style="color:var(--gold-light);font-weight:600">${formatCurrency(j.price)}</td>
-      <td>${j.isCash ? '<span class="cash-badge">รับเงินสด</span>' : '<span class="cash-muted">-</span>'}</td>
-      <td>${renderStatusRadios(j, i)}</td>
+      <td>${renderCashCheckbox(j)}</td>
+      <td>${renderJobStatusCell(j, i)}</td>
       <td>
         ${j.bookingDocument?.dataUrl ? `<button class="action-btn" type="button" data-job-action="booking" data-job-id="${escAttr(j.id)}">ใบจอง</button>` : ''}
         <button class="action-btn" type="button" data-job-action="edit" data-job-id="${escAttr(j.id)}">แก้ไข</button>
@@ -495,6 +491,12 @@ function bindQueueTableActions(tbody) {
   tbody.querySelectorAll('[data-job-status]').forEach(input => {
     input.addEventListener('change', () => updateJobStatus(input.dataset.jobId || '', input.value));
   });
+  tbody.querySelectorAll('[data-job-cash]').forEach(input => {
+    input.addEventListener('change', () => updateJobCash(input.dataset.jobId || '', input.checked));
+  });
+  tbody.querySelectorAll('[data-job-deposit-refunded]').forEach(input => {
+    input.addEventListener('change', () => updateJobDepositRefunded(input.dataset.jobId || '', input.checked));
+  });
 }
 
 function filterJobs() { renderQueueTable(); }
@@ -517,6 +519,20 @@ function openJobBookingDocumentModal(jobId) {
     image.alt = `ใบจอง ${job.client || ''}`.trim();
   }
   modal?.classList.add('open');
+}
+
+function renderCashCheckbox(job) {
+  return `
+    <label class="table-cash-control" title="ติ๊กเมื่องานนี้รับเงินสด">
+      <input
+        type="checkbox"
+        data-job-cash="1"
+        data-job-id="${escAttr(job.id)}"
+        ${job.isCash ? 'checked' : ''}
+      />
+      <span>รับเงินสด</span>
+    </label>
+  `;
 }
 
 function closeBookingPreviewModal() {
@@ -554,6 +570,15 @@ function downloadJobBookingDocument(jobId) {
   link.remove();
 }
 
+function renderJobStatusCell(job, index) {
+  return `
+    <div class="job-status-cell">
+      ${renderStatusRadios(job, index)}
+      ${job.status === 'cancelled' ? renderDepositRefundCheckbox(job) : ''}
+    </div>
+  `;
+}
+
 function renderStatusRadios(job, index) {
   const statuses = [
     ['pending', 'รอ'],
@@ -580,6 +605,22 @@ function renderStatusRadios(job, index) {
   `;
 }
 
+function renderDepositRefundCheckbox(job) {
+  const deposit = nonNegativeNumber(job.deposit);
+  return `
+    <label class="cancelled-deposit-control" title="ติ๊กเมื่อคืนมัดจำให้ลูกค้าแล้ว">
+      <input
+        type="checkbox"
+        data-job-deposit-refunded="1"
+        data-job-id="${escAttr(job.id)}"
+        ${job.depositRefunded ? 'checked' : ''}
+      />
+      <span>คืนมัดจำ</span>
+      ${deposit ? `<small>${formatCurrency(deposit)}</small>` : ''}
+    </label>
+  `;
+}
+
 function updateJobStatusFromRadio(input) {
   return updateJobStatus(input.dataset.jobId, input.value);
 }
@@ -596,6 +637,7 @@ async function updateJobStatus(jobId, status) {
 
   const previousStatus = job.status;
   job.status = status;
+  job.depositRefunded = status === 'cancelled' ? Boolean(job.depositRefunded) : false;
   job.updatedAt = new Date().toISOString();
   saveJobs(jobs);
 
@@ -617,6 +659,78 @@ async function updateJobStatus(jobId, status) {
     return;
   }
   await syncAfterJobMutation(`เปลี่ยนสถานะเป็น ${STATUS_LABELS[status] || status} แล้ว`);
+}
+
+async function updateJobDepositRefunded(jobId, refunded) {
+  const jobs = getJobs();
+  const previousJobs = jobs.map(item => ({ ...item }));
+  const job = jobs.find(j => j.id === jobId);
+  if (!job || job.status !== 'cancelled') {
+    renderQueueTable();
+    return;
+  }
+  if (!ensureDataStoreReady()) {
+    renderQueueTable();
+    return;
+  }
+  if (Boolean(job.depositRefunded) === Boolean(refunded)) return;
+
+  job.depositRefunded = Boolean(refunded);
+  job.updatedAt = new Date().toISOString();
+  saveJobs(jobs);
+  renderQueueTable();
+  updateDashboard();
+  if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
+
+  try {
+    await persistJobToDataStore(job);
+  } catch (e) {
+    saveJobs(previousJobs);
+    renderQueueTable();
+    updateDashboard();
+    if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
+    showToast('อัปเดตสถานะคืนมัดจำใน Firebase ไม่สำเร็จ: ' + (e.message || e), 'error');
+    return;
+  }
+
+  await syncAfterJobMutation(refunded ? 'บันทึกว่าคืนมัดจำแล้ว' : 'บันทึกว่ายังไม่คืนมัดจำ');
+}
+
+async function updateJobCash(jobId, isCash) {
+  const jobs = getJobs();
+  const previousJobs = jobs.map(item => ({ ...item }));
+  const job = jobs.find(j => j.id === jobId);
+  if (!job) {
+    renderQueueTable();
+    return;
+  }
+  if (!ensureDataStoreReady()) {
+    renderQueueTable();
+    return;
+  }
+  if (Boolean(job.isCash) === Boolean(isCash)) return;
+
+  job.isCash = Boolean(isCash);
+  job.updatedAt = new Date().toISOString();
+  saveJobs(jobs);
+  renderQueueTable();
+  updateDashboard();
+  if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
+  window.renderTaxCalculator?.();
+
+  try {
+    await persistJobToDataStore(job);
+  } catch (e) {
+    saveJobs(previousJobs);
+    renderQueueTable();
+    updateDashboard();
+    if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
+    window.renderTaxCalculator?.();
+    showToast('อัปเดตสถานะรับเงินสดใน Firebase ไม่สำเร็จ: ' + (e.message || e), 'error');
+    return;
+  }
+
+  await syncAfterJobMutation(isCash ? 'บันทึกว่างานนี้รับเงินสดแล้ว' : 'บันทึกว่างานนี้ไม่ใช่งานรับเงินสด');
 }
 
 /* ──────────────────────────────────────────────────────────

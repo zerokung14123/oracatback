@@ -101,6 +101,7 @@ function normalizeJob(job) {
     location: String(job?.location || ''),
     price: nonNegativeNumber(job?.price),
     deposit: nonNegativeNumber(job?.deposit),
+    depositRefunded: Boolean(job?.depositRefunded),
     isCash: Boolean(job?.isCash),
     status: String(job?.status || 'pending'),
     note: String(job?.note || ''),
@@ -359,6 +360,9 @@ async function saveSettingsToFirebase(settings) {
   }
   if (Object.prototype.hasOwnProperty.call(settings || {}, 'facebook')) {
     data.facebook = String(settings.facebook || '').trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(settings || {}, 'bookingTerms')) {
+    data.bookingTerms = String(settings.bookingTerms || '').trim();
   }
   if (Object.prototype.hasOwnProperty.call(settings || {}, 'hourRate')) {
     data.hourRate = nonNegativeNumber(settings.hourRate, 1500);

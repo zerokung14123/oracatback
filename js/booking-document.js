@@ -9,6 +9,7 @@ const BOOKING_CANVAS_HEIGHT = 1528;
 const BOOKING_TEMPLATE_NAME = 'pixmanager-booking-luxury-v3';
 const BOOKING_FONT = '"Segoe UI", Tahoma, sans-serif';
 const BOOKING_MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const DEFAULT_BOOKING_TERMS = 'สอบถามรายละเอียดเพิ่มเติม Inbox ได้เลยจ้า';
 const BOOKING_COLOR = {
   paper: '#f4f1ea',
   ink: '#1f1e1a',
@@ -206,7 +207,7 @@ function drawBookingTemplate(ctx, canvas, job, settings, slipImage) {
 
   drawBookingMeta(ctx, job);
   drawBookingTable(ctx, job);
-  drawBookingTermsAndSlip(ctx, job, slipImage);
+  drawBookingTermsAndSlip(ctx, job, settings, slipImage);
   drawBookingTotals(ctx, job);
   drawBookingSignature(ctx, settings);
 }
@@ -346,11 +347,7 @@ function drawBookingTable(ctx, job) {
     color: BOOKING_COLOR.ink,
   });
 
-  const details = [
-    bookingTimeLabel(job),
-    job.location ? `สถานที่ ${job.location}` : '',
-  ].filter(Boolean).join(' / ');
-  drawWrappedCellText(ctx, details || '-', detailX, bodyY - 30, detailW, 220, {
+  drawWrappedCellText(ctx, bookingJobDetails(job), detailX, bodyY - 30, detailW, 220, {
     paddingX: 0,
     paddingY: 30,
     lineHeight: 36,
@@ -376,7 +373,7 @@ function drawBookingTable(ctx, job) {
   drawBookingDivider(ctx, x, bodyY + 170, w);
 }
 
-function drawBookingTermsAndSlip(ctx, job, slipImage) {
+function drawBookingTermsAndSlip(ctx, job, settings, slipImage) {
   const x = 86;
   const y = 946;
 
@@ -385,8 +382,7 @@ function drawBookingTermsAndSlip(ctx, job, slipImage) {
   ctx.fillText('เงื่อนไขและข้อกำหนด :', x, y);
 
   ctx.font = `400 28px ${BOOKING_FONT}`;
-  const terms = (document.getElementById('bookingExtraNote')?.value?.trim() || job.note || defaultBookingTerms());
-  wrapCanvasText(ctx, terms, x, y + 50, 452, 38, 4);
+  wrapCanvasText(ctx, bookingTerms(settings), x, y + 50, 452, 38, 4);
   ctx.font = `600 27px ${BOOKING_FONT}`;
   ctx.fillText(`มัดจำค่าถ่ายภาพ เป็นจำนวน ${formatNumber(nonNegativeNumber(job.deposit))} บาท`, x, y + 182);
 
@@ -503,6 +499,14 @@ function bookingContact(settings, overrides = {}) {
   };
 }
 
+function bookingJobDetails(job) {
+  return String(job?.note || '').trim() || '-';
+}
+
+function bookingTerms(settings) {
+  return String(settings?.bookingTerms || '').trim() || DEFAULT_BOOKING_TERMS;
+}
+
 function bookingTimeLabel(job) {
   const start = job?.startTime || '-';
   const end = job?.endTime || '-';
@@ -513,10 +517,6 @@ function bookingItemText(job) {
   const jobType = JOB_TYPE_LABELS[job?.type] || job?.type || 'ถ่ายภาพ';
   const location = job?.location ? ` ${job.location}` : '';
   return `${jobType}${location} พร้อมส่งงานตามข้อตกลง`;
-}
-
-function defaultBookingTerms() {
-  return 'ส่งภาพพร้อมปรับแต่งแสงสว่าง สี ผ่าน Google photo ภายใน 7 วัน หลังจบงาน';
 }
 
 function formatThaiLongDate(dateStr) {

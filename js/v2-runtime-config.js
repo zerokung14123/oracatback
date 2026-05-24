@@ -1,5 +1,9 @@
 // Loads public runtime settings from the active backend.
 // Secrets never come back from this endpoint.
+function isLocalhostRuntime() {
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+}
+
 function mergePublicConfig(source) {
   if (!window.CONFIG || !source) return;
 
@@ -22,7 +26,29 @@ function mergePublicConfig(source) {
   });
 }
 
+function loadLocalConfigOverride() {
+  if (!isLocalhostRuntime() || window.__localConfigLoaded) return Promise.resolve(false);
+  window.__localConfigLoaded = true;
+
+  return new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = `js/config.local.js?v=${Date.now()}`;
+    script.onload = () => {
+      mergePublicConfig(window.LOCAL_CONFIG);
+      window.localConfigState = { loaded: Boolean(window.LOCAL_CONFIG), error: '' };
+      resolve(true);
+    };
+    script.onerror = () => {
+      window.localConfigState = { loaded: false, error: 'js/config.local.js not found' };
+      resolve(false);
+    };
+    document.head.appendChild(script);
+  });
+}
+
 async function loadV3RuntimeConfig() {
+  await loadLocalConfigOverride();
+
   const configuredEndpoint = window.CONFIG?.RUNTIME_CONFIG_ENDPOINT;
   const runtimeEndpoint = configuredEndpoint === undefined ? '/api/public-config' : String(configuredEndpoint || '').trim();
   window.runtimeConfigState = {

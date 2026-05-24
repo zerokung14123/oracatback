@@ -203,7 +203,7 @@
   function syncDefaultIncomeFromRevenue() {
     if (incomeWasEdited) return;
 
-    const income = getCurrentYearDoneRevenue();
+    const income = getCurrentYearRevenue();
     state.income = String(Math.round(income));
   }
 
@@ -255,8 +255,8 @@
             <input class="form-control tax-number-input" type="number" inputmode="decimal" min="0" data-tax-field="income" value="${state.income}" placeholder="เช่น 600000" />
             <div class="field-help">
               ${incomeWasEdited
-                ? 'ใช้ค่าที่กรอกเองอยู่ หากต้องการกลับไปใช้รายรับปีนี้ ให้กดปุ่ม "ใช้รายรับปีนี้จากงาน Done"'
-                : 'ค่าเริ่มต้นดึงจากรายรับปีนี้ของงานสถานะ Done โดยไม่รวมงานรับเงินสด และยังสามารถแก้ตัวเลขเองได้'}
+                ? 'ใช้ค่าที่กรอกเองอยู่ หากต้องการกลับไปใช้รายรับปีนี้ ให้กดปุ่ม "ใช้รายรับปีนี้จากระบบ"'
+                : 'ค่าเริ่มต้นดึงจากรายรับปีนี้ของงานที่นับเป็นรายได้ โดยไม่รวมงานรับเงินสด และยังสามารถแก้ตัวเลขเองได้'}
             </div>
           </div>
 
@@ -608,7 +608,7 @@
         <div class="tax-card-head"><h3>เช็กลิสต์ก่อนสิ้นปี</h3></div>
         <div class="tax-check-list">
           <span>ตรวจใบ 50 ทวิ และเอกสารหัก ณ ที่จ่าย</span>
-          <span>สรุปรายรับจากงานที่สถานะ Done</span>
+          <span>สรุปรายรับจากงานที่นับเป็นรายได้</span>
           <span>เก็บหลักฐานประกัน กองทุน ดอกเบี้ยบ้าน และเงินบริจาค</span>
           <span>ตรวจรายได้ธุรกิจเกิน 1.8 ล้านบาทสำหรับ VAT หรือไม่</span>
         </div>
@@ -852,30 +852,37 @@
     }
 
     if (event.target.closest('#taxUseRevenueBtn')) {
-      const income = getCurrentYearDoneRevenue();
+      const income = getCurrentYearRevenue();
       incomeWasEdited = false;
       state.income = String(Math.round(income));
       state.incomeType = '40_8';
       state.tab = 'income';
       renderTaxCalculator();
       const message = income
-        ? `ดึงรายรับปีนี้จากงาน Done แล้ว: ${formatCurrency(income)}`
-        : 'ยังไม่มีรายรับจากงานสถานะ Done ในปีนี้';
+        ? `ดึงรายรับปีนี้จากระบบแล้ว: ${formatCurrency(income)}`
+        : 'ยังไม่มีรายรับที่นับได้ในปีนี้';
       window.showToast?.(message, income ? 'success' : 'error');
     }
   }
 
-  function getCurrentYearDoneRevenue() {
+  function getCurrentYearRevenue() {
     if (typeof window.getJobs !== 'function') return 0;
 
     const currentYear = new Date().getFullYear();
     return window.getJobs()
       .filter(job => {
-        if (job?.status !== 'done' || job?.isCash || !job.date) return false;
+        const amount = typeof window.getJobRevenueAmount === 'function'
+          ? window.getJobRevenueAmount(job)
+          : (job?.status === 'done' ? toNumber(job.price) : 0);
+        if (amount <= 0 || job?.isCash || !job.date) return false;
         const date = new Date(`${job.date}T00:00:00`);
         return !Number.isNaN(date.getTime()) && date.getFullYear() === currentYear;
       })
-      .reduce((sum, job) => sum + toNumber(job.price), 0);
+      .reduce((sum, job) => sum + (
+        typeof window.getJobRevenueAmount === 'function'
+          ? window.getJobRevenueAmount(job)
+          : toNumber(job.price)
+      ), 0);
   }
 
   document.addEventListener('DOMContentLoaded', initTaxCalculator);

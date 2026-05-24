@@ -24,9 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => showPage(btn.dataset.page));
   });
 
-  const initialPage = new URLSearchParams(window.location.search).get('page');
-  if (initialPage && PAGE_TITLES[initialPage]) showPage(initialPage);
-
   const firebaseInitResult = await window.initFirebaseData?.();
   if (!window.firebaseData?.currentUser?.()) {
     updateLoginGate(null, {
@@ -69,7 +66,6 @@ function setupStaticEventHandlers() {
   bindChange('filterStatus', () => filterJobs());
   bindChange('bookingJobSelect', () => renderBookingDocument());
   bindChange('bookingSlipInput', event => loadBookingSlip(event.currentTarget));
-  bindInput('bookingExtraNote', () => renderBookingDocument());
   bindChange('revYear', () => renderRevenue());
   bindChange('revMonth', () => renderRevenue());
 
@@ -146,10 +142,11 @@ function updateLoginGate(user = null, options = {}) {
     setLoginGateBusy(false);
     setLoginGateStatus(`เข้าสู่ระบบแล้ว: ${user.email || user.displayName || 'Google account'}`);
     showTestNoticeAfterLogin(user);
-    window.setTimeout(() => enforceSheetSetupGate(), 0);
+    window.setTimeout(() => updateSheetSetupUI(), 0);
     return;
   }
 
+  initialLandingResolved = false;
   document.body.classList.add('auth-locked');
   document.body.classList.remove('auth-pending', 'auth-ready');
   setLoginGateBusy(false);
@@ -267,6 +264,14 @@ const PAGE_TITLES = {
   settings: 'ตั้งค่า',
 };
 
+let initialLandingResolved = false;
+
+function routeInitialLanding() {
+  if (initialLandingResolved || !window.firebaseData?.isReady?.()) return;
+  initialLandingResolved = true;
+  showPage(isSheetSetupRequired() ? 'settings' : 'dashboard', { quietGate: true });
+}
+
 function showPage(page, options = {}) {
   let target = page;
   if (isSheetSetupRequired() && page !== 'settings') {
@@ -371,6 +376,7 @@ function defaultSettings() {
     phone: '',
     email: '',
     facebook: '',
+    bookingTerms: '',
     hourRate: 1500,
     jobTypes: cloneJobTypes(DEFAULT_JOB_TYPES),
     lastSheetSync: null,
@@ -391,6 +397,7 @@ function setSettingsState(settings = {}, options = {}) {
   appSettingsState.phone = String(next.phone || '');
   appSettingsState.email = String(next.email || '');
   appSettingsState.facebook = String(next.facebook || '');
+  appSettingsState.bookingTerms = String(next.bookingTerms || '');
   appSettingsState.hourRate = nonNegativeNumber(next.hourRate, 1500);
   appSettingsState.jobTypes = normalizeJobTypeSettings(next.jobTypes);
   appSettingsState.lastSheetSync = next.lastSheetSync || null;
@@ -604,12 +611,14 @@ function loadSettingsForm() {
   const phoneInput = document.getElementById('settingPhone');
   const emailInput = document.getElementById('settingEmail');
   const facebookInput = document.getElementById('settingFacebook');
+  const bookingTermsInput = document.getElementById('settingBookingTerms');
   const hourRateInput = document.getElementById('settingHourRate');
   const sheetIdInput = document.getElementById('settingSheetId');
   if (nameInput) nameInput.value = s.studioName || '';
   if (phoneInput) phoneInput.value = s.phone || '';
   if (emailInput) emailInput.value = s.email || '';
   if (facebookInput) facebookInput.value = s.facebook || '';
+  if (bookingTermsInput) bookingTermsInput.value = s.bookingTerms || '';
   if (hourRateInput) hourRateInput.value = s.hourRate || '';
   if (sheetIdInput) sheetIdInput.value = s.sheetId || '';
   renderJobTypeSettings();
@@ -841,6 +850,7 @@ async function saveBusinessInfo() {
   s.phone = document.getElementById('settingPhone')?.value.trim() || '';
   s.email = document.getElementById('settingEmail')?.value.trim() || '';
   s.facebook = document.getElementById('settingFacebook')?.value.trim() || '';
+  s.bookingTerms = document.getElementById('settingBookingTerms')?.value.trim() || '';
   s.hourRate = Number(document.getElementById('settingHourRate').value) || 1500;
   setSettingsState(s);
   try {
@@ -849,6 +859,7 @@ async function saveBusinessInfo() {
       phone: s.phone,
       email: s.email,
       facebook: s.facebook,
+      bookingTerms: s.bookingTerms,
       hourRate: s.hourRate,
     });
     showToast('บันทึกข้อมูลธุรกิจไป Firebase แล้ว ✓', 'success');
@@ -881,6 +892,7 @@ async function saveGoogleSheetSettings() {
     updateSheetSyncInfo();
     scheduleSheetAccessCheck();
     enforceSheetSetupGate();
+    showPage('dashboard', { quietGate: true });
     showToast('บันทึก Google Sheet ID ไป Firebase แล้ว ✓', 'success');
   } catch (e) {
     setSettingsState(previous, { replace: true });
@@ -935,6 +947,7 @@ async function createBookingSheetFromSettings() {
     sheetAccessState.message = result.title || 'Booking';
     updateSheetSyncInfo();
     updateSheetSetupUI();
+    showPage('dashboard', { quietGate: true });
     showToast('สร้าง Booking Sheet และบันทึก Sheet ID แล้ว ✓', 'success');
   } catch (error) {
     console.error('Create Booking Sheet failed:', error);
@@ -958,6 +971,8 @@ function applyCloudSettings(settings) {
   if (emailInput) emailInput.value = appSettingsState.email || '';
   const facebookInput = document.getElementById('settingFacebook');
   if (facebookInput) facebookInput.value = appSettingsState.facebook || '';
+  const bookingTermsInput = document.getElementById('settingBookingTerms');
+  if (bookingTermsInput) bookingTermsInput.value = appSettingsState.bookingTerms || '';
   const hourRateInput = document.getElementById('settingHourRate');
   if (hourRateInput) hourRateInput.value = appSettingsState.hourRate || '';
   renderJobTypeSettings();
@@ -969,6 +984,7 @@ function applyCloudSettings(settings) {
   updateDashboard();
   if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
   if (document.getElementById('page-documents')?.classList.contains('active')) refreshBookingDocumentJobs();
+  routeInitialLanding();
   enforceSheetSetupGate();
 }
 
@@ -1036,6 +1052,7 @@ function clearAppData(options = {}) {
     'settingPhone',
     'settingEmail',
     'settingFacebook',
+    'settingBookingTerms',
     'settingHourRate',
     'newJobTypeLabel',
   ].forEach(id => {

@@ -4,6 +4,27 @@
 
 const MONTH_NAMES = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 let dashboardTaxSelectedKey = '';
+const REVENUE_CHART_COLORS = [
+  '#d8b76c',
+  '#76a9fa',
+  '#70d49b',
+  '#f18b72',
+  '#a896ff',
+  '#5fd0dc',
+  '#f4c95d',
+  '#ec7fa3',
+  '#99a8b8',
+  '#b8e879',
+  '#f7a660',
+  '#8fd3ff',
+];
+const revenueChartState = {
+  chartType: '',
+  hoverIndex: -1,
+  bars: [],
+  slices: [],
+  tooltipData: [],
+};
 
 function getJobDate(job) {
   if (!job?.date) return null;
@@ -12,7 +33,13 @@ function getJobDate(job) {
 }
 
 function isRevenueJob(job) {
-  return job?.status === 'done' && getJobDate(job) !== null;
+  return getJobDate(job) !== null && getJobRevenueAmount(job) > 0;
+}
+
+function getJobRevenueAmount(job) {
+  if (job?.status === 'done') return nonNegativeNumber(job.price);
+  if (job?.status === 'cancelled' && !job.depositRefunded) return nonNegativeNumber(job.deposit);
+  return 0;
 }
 
 function isScheduledJob(job) {
@@ -34,7 +61,7 @@ function renderRevenue() {
   // Filter month
   if (month) jobs = jobs.filter(j => (getJobDate(j).getMonth() + 1) === Number(month));
 
-  const total = jobs.reduce((s, j) => s + nonNegativeNumber(j.price), 0);
+  const total = jobs.reduce((s, j) => s + getJobRevenueAmount(j), 0);
   const count = jobs.length;
 
   document.getElementById('rev-total').textContent = formatCurrency(total);
@@ -50,7 +77,7 @@ function renderMonthlyBreakdown(year, jobs, filterMonth) {
 
   const rows = months.map(m => {
     const mJobs = jobs.filter(j => (getJobDate(j).getMonth() + 1) === m);
-    const rev = mJobs.reduce((s, j) => s + nonNegativeNumber(j.price), 0);
+    const rev = mJobs.reduce((s, j) => s + getJobRevenueAmount(j), 0);
     return { m, rev, count: mJobs.length };
   }).filter(r => r.rev > 0 || !filterMonth);
 
@@ -75,7 +102,7 @@ function renderTypeBreakdown(jobs) {
   const byType = {};
   jobs.forEach(j => {
     if (!byType[j.type]) byType[j.type] = { rev: 0, count: 0 };
-    byType[j.type].rev += nonNegativeNumber(j.price);
+    byType[j.type].rev += getJobRevenueAmount(j);
     byType[j.type].count += 1;
   });
 
@@ -100,7 +127,7 @@ function renderTypeBreakdown(jobs) {
 /* ──────────────────────────────────────────────────────────
    DASHBOARD CHART (Vanilla Canvas)
    ────────────────────────────────────────────────────────── */
-function renderChart() {
+function renderChartLegacy() {
   const canvas = document.getElementById('revenueChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -109,7 +136,7 @@ function renderChart() {
 
   const jobs = getJobs().filter(j => isRevenueJob(j) && getJobDate(j).getFullYear() === year);
   const data = Array.from({ length: 12 }, (_, i) =>
-    jobs.filter(j => getJobDate(j).getMonth() === i).reduce((s, j) => s + nonNegativeNumber(j.price), 0)
+    jobs.filter(j => getJobDate(j).getMonth() === i).reduce((s, j) => s + getJobRevenueAmount(j), 0)
   );
 
   const W = canvas.offsetWidth || canvas.width;
@@ -224,8 +251,8 @@ function updateDashboard() {
   const pending   = jobs.filter(j => j.status === 'pending');
 
   document.getElementById('stat-month-jobs').textContent  = thisMonth.length;
-  document.getElementById('stat-month-income').textContent = formatCurrency(thisMonthRevenue.reduce((s,j)=>s + nonNegativeNumber(j.price),0));
-  document.getElementById('stat-year-income').textContent  = formatCurrency(thisYearRevenue.reduce((s,j)=>s + nonNegativeNumber(j.price),0));
+  document.getElementById('stat-month-income').textContent = formatCurrency(thisMonthRevenue.reduce((s,j)=>s + getJobRevenueAmount(j),0));
+  document.getElementById('stat-year-income').textContent  = formatCurrency(thisYearRevenue.reduce((s,j)=>s + getJobRevenueAmount(j),0));
   document.getElementById('stat-pending').textContent      = pending.length;
 
   // Upcoming list (next 5 jobs)
@@ -551,3 +578,392 @@ function revenueEscAttr(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+function renderChart() {
+  const canvas = document.getElementById('revenueChart');
+  if (!canvas) return;
+  setupRevenueChartInteractions(canvas);
+
+  const ctx = canvas.getContext('2d');
+  const year = Number(document.getElementById('chartYear')?.value || new Date().getFullYear());
+  const chartType = document.getElementById('chartType')?.value || 'bar';
+  const jobs = getJobs().filter(job => isRevenueJob(job) && getJobDate(job).getFullYear() === year);
+  const monthData = Array.from({ length: 12 }, (_, index) => {
+    const monthJobs = jobs.filter(job => getJobDate(job).getMonth() === index);
+    return {
+      index,
+      label: MONTH_NAMES[index],
+      value: monthJobs.reduce((sum, job) => sum + getJobRevenueAmount(job), 0),
+      count: monthJobs.length,
+      color: REVENUE_CHART_COLORS[index % REVENUE_CHART_COLORS.length],
+    };
+  });
+
+  const W = canvas.offsetWidth || canvas.width || 640;
+  const H = chartType === 'pie' ? 240 : 210;
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  canvas.style.height = `${H}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  if (revenueChartState.chartType !== chartType) {
+    revenueChartState.hoverIndex = -1;
+    hideRevenueChartTooltip();
+  }
+  revenueChartState.chartType = chartType;
+  revenueChartState.tooltipData = monthData;
+  revenueChartState.bars = [];
+  revenueChartState.slices = [];
+
+  if (chartType === 'pie') {
+    renderDonutRevenueChart(ctx, monthData, W, H);
+  } else {
+    renderBarRevenueChart(ctx, monthData, W, H);
+  }
+}
+
+function renderBarRevenueChart(ctx, monthData, W, H) {
+  const data = monthData.map(item => item.value);
+  const total = data.reduce((sum, value) => sum + value, 0);
+  const maxVal = Math.max(...data, 1);
+  const padL = 10;
+  const padR = 10;
+  const padT = 20;
+  const padB = 30;
+  const barW = (W - padL - padR) / 12;
+  const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+  if (revenueChartState.hoverIndex >= monthData.length) revenueChartState.hoverIndex = -1;
+
+  revenueChartState.bars = [];
+  ctx.strokeStyle = isLightTheme ? 'rgba(143,112,51,0.12)' : 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + ((H - padT - padB) * i / 4);
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+  }
+
+  monthData.forEach((item, i) => {
+    const bH = ((H - padT - padB) * item.value / maxVal);
+    const x = padL + i * barW + barW * 0.15;
+    const w = barW * 0.7;
+    const y = H - padB - bH;
+    const isHover = revenueChartState.hoverIndex === i;
+    const visibleHeight = Math.max(2, bH);
+    const hitTop = Math.min(y, H - padB - visibleHeight);
+    revenueChartState.bars.push({
+      ...item,
+      barIndex: i,
+      percent: total > 0 ? item.value / total : 0,
+      total,
+      x,
+      y: hitTop,
+      width: w,
+      height: Math.max(visibleHeight, 12),
+      bottom: H - padB,
+    });
+
+    if (isHover) {
+      ctx.save();
+      ctx.fillStyle = isLightTheme ? 'rgba(216,183,108,0.14)' : 'rgba(216,183,108,0.08)';
+      drawChartRoundRect(ctx, x - barW * 0.12, padT - 8, w + barW * 0.24, H - padT - padB + 16, 8);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    const grad = ctx.createLinearGradient(0, y, 0, H - padB);
+    grad.addColorStop(0, isHover ? 'rgba(240,214,149,1)' : 'rgba(201,168,76,0.9)');
+    grad.addColorStop(1, isHover ? 'rgba(216,183,108,0.32)' : 'rgba(201,168,76,0.15)');
+    ctx.fillStyle = grad;
+    ctx.save();
+    if (isHover) {
+      ctx.shadowColor = 'rgba(216,183,108,0.42)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 3;
+    }
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, H - padB - visibleHeight, w, visibleHeight, [5, 5, 0, 0]);
+    } else {
+      ctx.rect(x, H - padB - visibleHeight, w, visibleHeight);
+    }
+    ctx.fill();
+    ctx.restore();
+
+    if (isHover && item.value > 0) {
+      ctx.fillStyle = isLightTheme ? '#7a5b1d' : 'rgba(240,214,149,0.96)';
+      ctx.font = '700 10px Segoe UI, system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(formatCompactCurrency(item.value), x + w / 2, Math.max(12, H - padB - visibleHeight - 9));
+    }
+
+    ctx.fillStyle = isHover ? (isLightTheme ? '#5e4617' : 'rgba(240,214,149,0.95)') : 'rgba(136,136,136,0.8)';
+    ctx.font = `${isHover ? '700' : '500'} 9px Segoe UI, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(item.label, x + w / 2, H - padB + 14);
+  });
+}
+
+function renderDonutRevenueChart(ctx, monthData, W, H) {
+  const total = monthData.reduce((sum, item) => sum + item.value, 0);
+  const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+  if (total === 0) {
+    revenueChartState.hoverIndex = -1;
+    hideRevenueChartTooltip();
+    drawChartEmptyState(ctx, W, H);
+    return;
+  }
+
+  const activeData = monthData.filter(item => item.value > 0);
+  if (revenueChartState.hoverIndex >= activeData.length) revenueChartState.hoverIndex = -1;
+
+  const hasLegend = W >= 540;
+  const cx = hasLegend ? Math.max(112, Math.min(W * 0.32, 210)) : W / 2;
+  const cy = H / 2 + 4;
+  const radius = Math.max(66, Math.min(hasLegend ? 86 : 78, H * 0.36, W * (hasLegend ? 0.18 : 0.28)));
+  const baseWidth = Math.max(26, Math.min(34, radius * 0.34));
+  const innerRadius = radius - baseWidth / 2 - 6;
+  const outerRadius = radius + baseWidth / 2 + 8;
+
+  ctx.save();
+  ctx.lineWidth = baseWidth;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = isLightTheme ? 'rgba(143,112,51,0.13)' : 'rgba(255,255,255,0.08)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  let currentAngle = -0.5 * Math.PI;
+  const gap = activeData.length > 1 ? 0.018 : 0;
+  revenueChartState.slices = [];
+
+  activeData.forEach((item, sliceIndex) => {
+    const sliceAngle = (item.value / total) * 2 * Math.PI;
+    const drawStart = currentAngle + gap;
+    const drawEnd = currentAngle + sliceAngle - gap;
+    const isHover = revenueChartState.hoverIndex === sliceIndex;
+    const lineWidth = baseWidth + (isHover ? 7 : 0);
+
+    ctx.save();
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = item.color;
+    ctx.shadowColor = isHover ? `${item.color}88` : 'rgba(0,0,0,0.26)';
+    ctx.shadowBlur = isHover ? 18 : 8;
+    ctx.shadowOffsetY = isHover ? 0 : 4;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, drawStart, Math.max(drawStart, drawEnd));
+    ctx.stroke();
+    ctx.restore();
+
+    revenueChartState.slices.push({
+      ...item,
+      sliceIndex,
+      percent: item.value / total,
+      startAngle: drawStart,
+      endAngle: Math.max(drawStart, drawEnd),
+      cx,
+      cy,
+      innerRadius,
+      outerRadius,
+      total,
+    });
+
+    currentAngle += sliceAngle;
+  });
+
+  drawDonutCenter(ctx, cx, cy, radius, total, isLightTheme);
+  drawDonutLegend(ctx, activeData, total, W, H, cx, radius, isLightTheme);
+}
+
+function drawDonutCenter(ctx, cx, cy, radius, total, isLightTheme) {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = isLightTheme ? '#6f5527' : 'rgba(240,214,149,0.92)';
+  ctx.font = '700 10px Segoe UI, system-ui, sans-serif';
+  ctx.fillText('รวม', cx, cy - 18);
+  drawFittedChartText(ctx, formatCompactCurrency(total), cx, cy + 2, radius * 1.15, 19, '800', isLightTheme ? '#201a12' : '#ffffff');
+  ctx.fillStyle = isLightTheme ? 'rgba(68,58,46,0.64)' : 'rgba(230,230,230,0.58)';
+  ctx.font = '600 10px Segoe UI, system-ui, sans-serif';
+  ctx.fillText('รายรับปีนี้', cx, cy + 24);
+  ctx.restore();
+}
+
+function drawDonutLegend(ctx, activeData, total, W, H, cx, radius, isLightTheme) {
+  if (W < 540) return;
+  const legendX = cx + radius + 52;
+  const legendY = Math.max(24, (H - activeData.length * 17) / 2);
+  const maxTextWidth = Math.max(130, W - legendX - 18);
+
+  ctx.save();
+  ctx.textBaseline = 'middle';
+  activeData.forEach((item, index) => {
+    const y = legendY + index * 17;
+    const isHover = revenueChartState.hoverIndex === index;
+    if (isHover) {
+      ctx.fillStyle = isLightTheme ? 'rgba(216,183,108,0.16)' : 'rgba(216,183,108,0.10)';
+      drawChartRoundRect(ctx, legendX - 8, y - 8, maxTextWidth + 18, 16, 7);
+      ctx.fill();
+    }
+    ctx.fillStyle = item.color;
+    ctx.beginPath();
+    ctx.arc(legendX, y, isHover ? 4.5 : 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = isLightTheme ? '#33291b' : 'rgba(245,245,245,0.88)';
+    ctx.font = `${isHover ? '700' : '600'} 10px Segoe UI, system-ui, sans-serif`;
+    const percent = `${Math.round((item.value / total) * 100)}%`;
+    const label = `${item.label}  ${formatCompactCurrency(item.value)}  ${percent}`;
+    drawClippedChartText(ctx, label, legendX + 12, y, maxTextWidth);
+  });
+  ctx.restore();
+}
+
+function drawChartEmptyState(ctx, W, H) {
+  ctx.fillStyle = 'rgba(136,136,136,0.8)';
+  ctx.font = '12px Segoe UI, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ไม่มีข้อมูลรายรับ', W / 2, H / 2);
+}
+
+function setupRevenueChartInteractions(canvas) {
+  if (canvas.dataset.chartHoverBound === '1') return;
+  canvas.dataset.chartHoverBound = '1';
+  canvas.addEventListener('pointermove', handleRevenueChartPointerMove);
+  canvas.addEventListener('pointerleave', () => {
+    if (revenueChartState.hoverIndex !== -1) {
+      revenueChartState.hoverIndex = -1;
+      renderChart();
+    }
+    hideRevenueChartTooltip();
+    canvas.style.cursor = '';
+  });
+}
+
+function handleRevenueChartPointerMove(event) {
+  const canvas = event.currentTarget;
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const isPie = revenueChartState.chartType === 'pie';
+  const index = isPie ? findRevenueChartSlice(x, y) : findRevenueChartBar(x, y);
+
+  if (index !== revenueChartState.hoverIndex) {
+    revenueChartState.hoverIndex = index;
+    renderChart();
+  }
+
+  if (index >= 0) {
+    canvas.style.cursor = 'pointer';
+    const item = isPie ? revenueChartState.slices[index] : revenueChartState.bars[index];
+    showRevenueChartTooltip(canvas, item, x, y);
+  } else {
+    canvas.style.cursor = '';
+    hideRevenueChartTooltip();
+  }
+}
+
+function findRevenueChartSlice(x, y) {
+  return revenueChartState.slices.findIndex(slice => {
+    const dx = x - slice.cx;
+    const dy = y - slice.cy;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < slice.innerRadius || distance > slice.outerRadius) return false;
+    let angle = Math.atan2(dy, dx);
+    while (angle < -0.5 * Math.PI) angle += Math.PI * 2;
+    return angle >= slice.startAngle && angle <= slice.endAngle;
+  });
+}
+
+function findRevenueChartBar(x, y) {
+  return revenueChartState.bars.findIndex(bar => (
+    x >= bar.x - 4 &&
+    x <= bar.x + bar.width + 4 &&
+    y >= bar.y - 8 &&
+    y <= bar.bottom + 8
+  ));
+}
+
+function showRevenueChartTooltip(canvas, slice, x, y) {
+  const tooltip = document.getElementById('revenueChartTooltip');
+  if (!tooltip || !slice) return;
+  tooltip.hidden = false;
+  tooltip.innerHTML = `
+    <div class="chart-tooltip-title">
+      <span class="chart-tooltip-dot" style="background:${revenueEscAttr(slice.color)}"></span>
+      ${revenueEscHtml(slice.label)}
+    </div>
+    <div class="chart-tooltip-value">${revenueEscHtml(formatCurrency(slice.value))}</div>
+    <div class="chart-tooltip-meta">${slice.count} งาน / ${Math.round(slice.percent * 100)}% ของปี</div>
+  `;
+
+  const stage = canvas.parentElement;
+  const stageW = stage?.clientWidth || canvas.clientWidth;
+  const stageH = stage?.clientHeight || canvas.clientHeight;
+  const tooltipW = tooltip.offsetWidth || 190;
+  const tooltipH = tooltip.offsetHeight || 82;
+  const left = Math.min(Math.max(x + 16, 8), Math.max(8, stageW - tooltipW - 8));
+  const top = Math.min(Math.max(y + 16, 8), Math.max(8, stageH - tooltipH - 8));
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function hideRevenueChartTooltip() {
+  const tooltip = document.getElementById('revenueChartTooltip');
+  if (!tooltip) return;
+  tooltip.hidden = true;
+}
+
+function formatCompactCurrency(value) {
+  const amount = nonNegativeNumber(value);
+  if (amount >= 1000000) return `฿ ${(amount / 1000000).toLocaleString('th-TH', { maximumFractionDigits: 1 })}M`;
+  if (amount >= 1000) return `฿ ${(amount / 1000).toLocaleString('th-TH', { maximumFractionDigits: 0 })}K`;
+  return formatCurrency(amount);
+}
+
+function drawFittedChartText(ctx, text, x, y, maxWidth, fontSize, weight, color) {
+  let size = fontSize;
+  do {
+    ctx.font = `${weight} ${size}px Segoe UI, system-ui, sans-serif`;
+    if (ctx.measureText(text).width <= maxWidth || size <= 10) break;
+    size -= 1;
+  } while (size > 10);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function drawClippedChartText(ctx, text, x, y, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) {
+    ctx.fillText(text, x, y);
+    return;
+  }
+  let next = text;
+  while (next.length > 4 && ctx.measureText(`${next}...`).width > maxWidth) next = next.slice(0, -1);
+  ctx.fillText(`${next}...`, x, y);
+}
+
+function drawChartRoundRect(ctx, x, y, w, h, r) {
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+}
+
+window.getJobRevenueAmount = getJobRevenueAmount;

@@ -954,7 +954,71 @@ body.auth-ready .login-gate {
 }
 
 /* Chart */
-#revenueChart { width: 100%; max-height: 200px; }
+.chart-card {
+  overflow: hidden;
+}
+
+.chart-stage {
+  position: relative;
+  min-height: 240px;
+}
+
+#revenueChart {
+  display: block;
+  width: 100%;
+  height: 210px;
+  max-height: 260px;
+  border-radius: 8px;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 176px;
+  max-width: min(260px, calc(100% - 16px));
+  padding: 11px 12px;
+  background: rgba(12, 12, 10, 0.94);
+  border: 1px solid rgba(216,183,108,0.32);
+  border-radius: 8px;
+  box-shadow: 0 16px 42px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.06);
+  color: var(--text);
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+
+.chart-tooltip[hidden] {
+  display: none;
+}
+
+.chart-tooltip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.chart-tooltip-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.07);
+}
+
+.chart-tooltip-value {
+  color: var(--gold-light);
+  font-size: 1.02rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tooltip-meta {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
 
 /* ===== QUEUE TOOLBAR ===== */
 .queue-toolbar {
@@ -1028,22 +1092,34 @@ body.auth-ready .login-gate {
   text-overflow: ellipsis;
 }
 
-.cash-badge {
+.table-cash-control {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   min-height: 24px;
-  padding: 4px 9px;
-  border: 1px solid rgba(216,183,108,0.38);
-  border-radius: 999px;
-  background: rgba(216,183,108,0.1);
-  color: var(--gold-light);
-  font-size: 0.72rem;
-  font-weight: 700;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
   white-space: nowrap;
+  cursor: pointer;
 }
 
-.cash-muted {
-  color: var(--text-dim);
+.table-cash-control input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--gold);
+}
+
+.table-cash-control:has(input:checked) {
+  border-color: rgba(216,183,108,0.42);
+  background: rgba(216,183,108,0.1);
+  color: var(--gold-light);
+}
+
+.table-cash-control:has(input:checked) span {
+  font-weight: 700;
 }
 
 .status-badge {
@@ -1064,6 +1140,13 @@ body.auth-ready .login-gate {
   align-items: center;
   gap: 5px;
   min-width: 270px;
+}
+
+.job-status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
 }
 
 .table-status-radio {
@@ -1108,6 +1191,31 @@ body.auth-ready .login-gate {
   background: rgba(224,85,85,0.12);
   border-color: rgba(224,85,85,0.35);
   color: var(--red);
+}
+
+.cancelled-deposit-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border: 1px solid rgba(224,85,85,0.3);
+  border-radius: 5px;
+  background: rgba(224,85,85,0.06);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cancelled-deposit-control input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--red);
+}
+
+.cancelled-deposit-control small {
+  color: var(--red);
+  font-weight: 600;
 }
 
 .action-btn {
@@ -2652,4 +2760,115 @@ html[data-theme="light"] .filter-select option,
 html[data-theme="light"] select.form-control option {
   background: #ffffff;
   color: var(--text);
+}
+
+html[data-theme="light"] .chart-tooltip {
+  background: rgba(255, 252, 247, 0.96);
+  border-color: rgba(201,147,57,0.28);
+  box-shadow: 0 16px 36px rgba(93,62,22,0.16), inset 0 1px 0 rgba(255,255,255,0.86);
+}
+
+html[data-theme="light"] .tax-hero {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(201,147,57,0.12), transparent 34%),
+    linear-gradient(135deg, #ffffff, #fffaf3);
+  border-color: rgba(201,147,57,0.28);
+  box-shadow: var(--shadow-soft);
+}
+
+html[data-theme="light"] .tax-alert,
+html[data-theme="light"] .tax-research-note {
+  background: rgba(255,250,243,0.9);
+  border-color: rgba(201,147,57,0.2);
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .tax-summary-card,
+html[data-theme="light"] .tax-card {
+  background: linear-gradient(180deg, #ffffff, #fffaf3);
+  border-color: rgba(201,147,57,0.2);
+  box-shadow: 0 12px 30px rgba(88,61,22,0.07);
+}
+
+html[data-theme="light"] .tax-summary-card.gold,
+html[data-theme="light"] .tax-result-card {
+  background:
+    radial-gradient(circle at top, rgba(216,183,108,0.14), transparent 58%),
+    linear-gradient(180deg, #ffffff, #fff7e8);
+  border-color: rgba(201,147,57,0.34);
+}
+
+html[data-theme="light"] .tax-tab {
+  background: #ffffff;
+  border-color: rgba(201,147,57,0.16);
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .tax-tab:hover,
+html[data-theme="light"] .tax-tab.active {
+  background: rgba(216,183,108,0.1);
+  border-color: rgba(201,147,57,0.36);
+  color: var(--gold-light);
+}
+
+html[data-theme="light"] .tax-info-panel,
+html[data-theme="light"] .tax-advice-item,
+html[data-theme="light"] .tax-deadline,
+html[data-theme="light"] .tax-check-list span,
+html[data-theme="light"] .tax-investment-total {
+  background: rgba(255,250,243,0.78);
+  border-color: rgba(201,147,57,0.16);
+}
+
+html[data-theme="light"] .tax-row,
+html[data-theme="light"] .tax-summary-row,
+html[data-theme="light"] .tax-sim-row,
+html[data-theme="light"] .tax-guide-table > div,
+html[data-theme="light"] .tax-investment-row,
+html[data-theme="light"] .tax-total-strip {
+  border-color: rgba(201,147,57,0.14);
+}
+
+html[data-theme="light"] .tax-deadline.urgent {
+  background: rgba(216,183,108,0.1);
+  border-color: rgba(201,147,57,0.32);
+}
+
+html[data-theme="light"] .tax-progress,
+html[data-theme="light"] .tax-bracket-bar {
+  background: rgba(201,147,57,0.14);
+}
+
+html[data-theme="light"] .tax-toggle,
+html[data-theme="light"] .toggle {
+  background: #eee7dc;
+  border-color: rgba(201,147,57,0.22);
+}
+
+html[data-theme="light"] .tax-toggle::after,
+html[data-theme="light"] .toggle::after {
+  background: #9b9388;
+}
+
+html[data-theme="light"] .tax-toggle.on,
+html[data-theme="light"] .toggle-label input:checked + .toggle {
+  background: rgba(216,183,108,0.26);
+  border-color: rgba(201,147,57,0.48);
+}
+
+html[data-theme="light"] .tax-counter button {
+  background: #fffaf3;
+  border-color: rgba(201,147,57,0.16);
+  color: var(--text);
+}
+
+html[data-theme="light"] .tax-counter button:hover,
+html[data-theme="light"] .tax-investment-controls button:hover {
+  background: rgba(216,183,108,0.12);
+}
+
+html[data-theme="light"] .tax-investment-controls button {
+  background: rgba(216,183,108,0.08);
+  border-color: rgba(201,147,57,0.28);
+  color: var(--gold-light);
 }

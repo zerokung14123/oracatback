@@ -1,5 +1,6 @@
 // Google OAuth v3 code-flow helper.
-// Google OAuth helper. Static hosting uses Firebase Google popup by default.
+// The browser receives short-lived access tokens only. Refresh token handling
+// stays in the local backend as an HttpOnly cookie.
 const googleOAuthV3 = (() => {
   const STATE_KEY = 'fotoManagerV3GoogleSession';
   const ACTIVITY_KEY = 'fotoManagerV3LastActiveAt';
@@ -35,10 +36,10 @@ const googleOAuthV3 = (() => {
   function configErrorMessage() {
     const runtime = window.runtimeConfigState || {};
     if (runtime.protocol === 'file:') {
-      return 'กรุณาเปิดเว็บผ่าน web server หรือ domain จริง ไม่ใช่ file://';
+      return 'กรุณาเปิดเว็บผ่าน npm run local แล้วเข้า http://localhost:5500 ไม่ใช่ file://';
     }
     if (runtime.attempted && !runtime.loaded) {
-      return `โหลด runtime config ไม่สำเร็จ: ${runtime.error || 'unknown error'}`;
+      return `โหลด config จาก backend ไม่สำเร็จ: ${runtime.error || 'unknown error'} กรุณารัน npm run local แล้วเข้า http://localhost:5500`;
     }
     return 'ยังไม่ได้ตั้งค่า Google Login: เปิด Firebase Authentication > Google provider และใส่ Firebase Web config ใน js/config.js';
   }
@@ -178,7 +179,7 @@ const googleOAuthV3 = (() => {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       if ([404, 405].includes(response.status) && !payload.error) {
-        throw new Error(`OAuth endpoint ${endpoint()} ใช้งานไม่ได้ (${response.status})`);
+        throw new Error(`OAuth backend endpoint ${endpoint()} ใช้งานไม่ได้ (${response.status}) กรุณารัน npm run local แล้วเปิด http://localhost:5500`);
       }
       throw new Error(payload.error || `OAuth request failed (${response.status})`);
     }

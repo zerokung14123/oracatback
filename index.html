@@ -151,7 +151,10 @@
               <select class="select-small" id="chartYear"></select>
             </div>
           </div>
-          <canvas id="revenueChart" height="200"></canvas>
+          <div class="chart-stage">
+            <canvas id="revenueChart" height="240"></canvas>
+            <div class="chart-tooltip" id="revenueChartTooltip" hidden></div>
+          </div>
         </div>
       </div>
 
@@ -213,7 +216,7 @@
             <option value="pending">รอดำเนินการ</option>
             <option value="confirmed">ยืนยันแล้ว</option>
             <option value="done">เสร็จสิ้น</option>
-            <option value="cancelled">ยกเลิก</option>
+            <option value="cancelled">ยกเลิกงาน</option>
           </select>
         </div>
         <div class="toolbar-right">
@@ -287,11 +290,6 @@
             <div class="field-help">ถ้าไม่แนบ ระบบจะใช้รูปแรกที่เก็บไว้กับงานเป็นสลิปในใบจอง</div>
           </div>
 
-          <div class="form-group">
-            <label>ข้อความเพิ่มเติม</label>
-            <textarea class="form-control" id="bookingExtraNote" rows="3" placeholder="เช่น เงื่อนไขการจอง ช่องทางชำระเงิน หรือรายละเอียดส่งมอบงาน"></textarea>
-          </div>
-
           <div class="booking-actions">
             <button class="btn-secondary" type="button" id="bookingPreviewBtn">Preview</button>
             <button class="btn-primary" type="button" id="bookingDownloadBtn">ดาวน์โหลด .jpg</button>
@@ -354,7 +352,7 @@
             <h2>โปรแกรมคำนวนภาษี</h2>
             <p>คำนวณภาษีเงินได้บุคคลธรรมดาเบื้องต้น พร้อมสรุปลดหย่อน แผนประหยัดภาษี และกำหนดยื่นภาษีสำคัญ</p>
           </div>
-          <button class="btn-secondary" id="taxUseRevenueBtn" type="button">ใช้รายรับปีนี้จากงาน Done</button>
+          <button class="btn-secondary" id="taxUseRevenueBtn" type="button">ใช้รายรับปีนี้จากระบบ</button>
         </div>
 
         <div class="tax-alert">
@@ -424,6 +422,11 @@
             <label>อัตราค่าบริการต่อชั่วโมง (บาท)</label>
             <input type="number" class="form-control" id="settingHourRate" placeholder="1500" />
           </div>
+          <div class="form-group">
+            <label>เงื่อนไขและข้อกำหนด</label>
+            <textarea class="form-control" id="settingBookingTerms" rows="3" placeholder="สอบถามรายละเอียดเพิ่มเติม Inbox ได้เลยจ้า"></textarea>
+            <div class="field-help">ถ้าไม่กรอก ระบบจะใช้ค่าเริ่มต้นนี้ในส่วนเงื่อนไขและข้อกำหนด</div>
+          </div>
           <button class="btn-primary" type="button" id="saveBusinessInfoBtn">บันทึก</button>
         </div>
 
@@ -478,13 +481,7 @@
           </div>
           <div class="form-group">
             <label>ราคา (บาท) *</label>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="number" class="form-control" id="jobPrice" placeholder="0" style="flex: 1;" />
-              <label class="checkbox-label" style="margin: 0; white-space: nowrap;">
-                <input type="checkbox" id="jobIsCash" />
-                <span style="font-size: 0.85rem;">รับเงินสด</span>
-              </label>
-            </div>
+            <input type="number" class="form-control" id="jobPrice" placeholder="0" />
           </div>
           <div class="form-group">
             <label>มัดจำ (บาท)</label>

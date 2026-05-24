@@ -1,5 +1,5 @@
 // ============================================================
-//  google-api.js — Sheets + Calendar sync
+//  google-api.js — Sheets + Calendar sync using v3 backend OAuth tokens
 // ============================================================
 
 let gapiLoaded = false;
@@ -14,10 +14,10 @@ function isGoogleOAuthV3Mode() {
 function googleOAuthConfigMessage() {
   const state = window.runtimeConfigState || {};
   if (window.location.protocol === 'file:') {
-    return 'ต้องเปิดผ่าน web server หรือ domain จริง ห้ามเปิด index.html ด้วย file://';
+    return 'ต้องเปิดผ่าน npm run local แล้วเข้า http://localhost:5500 ห้ามเปิด index.html ตรงๆ';
   }
   if (state.error) {
-    return `โหลด runtime config ไม่สำเร็จ: ${state.error}`;
+    return `โหลด config จาก backend ไม่สำเร็จ: ${state.error}`;
   }
   return 'Google Login ยังไม่พร้อม: เปิด Firebase Authentication > Google provider และใส่ Firebase Web config ใน js/config.js';
 }
@@ -305,7 +305,7 @@ async function syncSheets(options = {}) {
       'ID','ลูกค้า','ประเภทงาน','วันที่',
       'เวลาเริ่ม','เวลาจบ','สถานที่',
       'ราคา','รับเงินสด','มัดจำ','สถานะ',
-      'หมายเหตุ','สร้างเมื่อ'
+      'คืนมัดจำ','หมายเหตุ','สร้างเมื่อ'
     ];
 
     const values = [header, ...jobs.map(jobToRow)];
@@ -317,14 +317,14 @@ async function syncSheets(options = {}) {
 
     await gapi.client.sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
-      range: sheetRange(CONFIG.SHEET_NAME, `A1:M${values.length}`),
+      range: sheetRange(CONFIG.SHEET_NAME, `A1:N${values.length}`),
       valueInputOption: 'USER_ENTERED',
       resource: { values },
     });
 
     const verifyResp = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: sheetRange(CONFIG.SHEET_NAME, `A1:M${values.length}`),
+      range: sheetRange(CONFIG.SHEET_NAME, `A1:N${values.length}`),
     });
     const writtenRows = verifyResp.result.values || [];
     if (writtenRows.length < values.length) {
@@ -419,6 +419,7 @@ function jobToRow(j) {
     j.isCash ? 'TRUE' : '',
     nonNegativeNumber(j.deposit),
     j.status || 'pending',
+    j.status === 'cancelled' && j.depositRefunded ? 'TRUE' : '',
     j.note || '',
     j.createdAt || new Date().toISOString(),
   ];
