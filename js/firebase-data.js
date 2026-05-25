@@ -35,7 +35,7 @@ const firebaseState = {
   app: null,
   auth: null,
   db: null,
-  appCheck: null,
+  heck: null,
   user: null,
   configured: false,
   snapshotLoaded: false,
@@ -52,7 +52,7 @@ function isFirebaseConfigured() {
   return REQUIRED_FIREBASE_KEYS.every(key => String(cfg[key] || '').trim());
 }
 
-function appCheckSiteKey() {
+function heckSiteKey() {
   return String(window.CONFIG?.FIREBASE_APP_CHECK_SITE_KEY || '').trim();
 }
 
@@ -397,16 +397,17 @@ async function initFirebaseData() {
   if (!firebaseState.configured) return false;
 
   firebaseState.app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig());
-  if (isAppCheckConfigured()) {
-    try {
-      firebaseState.appCheck = initializeAppCheck(firebaseState.app, {
-        provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey()),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (e) {
-      console.warn('Firebase App Check setup failed:', e);
-    }
-  }
+  // comment ออกชั่วคราว
+// if (isAppCheckConfigured()) {
+//   try {
+//     firebaseState.appCheck = initializeAppCheck(firebaseState.app, {
+//       provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey()),
+//       isTokenAutoRefreshEnabled: true,
+//     });
+//   } catch (e) {
+//     console.warn('Firebase App Check setup failed:', e);
+//   }
+// }
   firebaseState.auth = getAuth(firebaseState.app);
   firebaseState.db = getFirestore(firebaseState.app);
 
