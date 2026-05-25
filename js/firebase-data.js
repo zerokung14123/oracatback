@@ -35,7 +35,7 @@ const firebaseState = {
   app: null,
   auth: null,
   db: null,
-  heck: null,
+  appCheck: null,
   user: null,
   configured: false,
   snapshotLoaded: false,
@@ -52,7 +52,7 @@ function isFirebaseConfigured() {
   return REQUIRED_FIREBASE_KEYS.every(key => String(cfg[key] || '').trim());
 }
 
-function heckSiteKey() {
+function appCheckSiteKey() {
   return String(window.CONFIG?.FIREBASE_APP_CHECK_SITE_KEY || '').trim();
 }
 
