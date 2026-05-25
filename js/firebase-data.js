@@ -397,17 +397,16 @@ async function initFirebaseData() {
   if (!firebaseState.configured) return false;
 
   firebaseState.app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig());
-// comment ออกชั่วคราว
-// if (isAppCheckConfigured()) {
-//   try {
-//     firebaseState.appCheck = initializeAppCheck(firebaseState.app, {
-//       provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey()),
-//       isTokenAutoRefreshEnabled: true,
-//     });
-//   } catch (e) {
-//     console.warn('Firebase App Check setup failed:', e);
-//   }
-// }
+if (isAppCheckConfigured()) {
+  try {
+    firebaseState.appCheck = initializeAppCheck(firebaseState.app, {
+      provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey()),
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (e) {
+    console.warn('Firebase App Check setup failed:', e);
+  }
+}
   firebaseState.auth = getAuth(firebaseState.app);
   firebaseState.db = getFirestore(firebaseState.app);
 
