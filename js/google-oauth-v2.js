@@ -22,8 +22,8 @@ const googleOAuthV3 = (() => {
   }
 
   function isConfigured() {
-    return hasBackendCodeFlow() || hasStaticFirebaseAuth();
-  }
+  return hasBackendCodeFlow();
+}
 
   function hasBackendCodeFlow() {
     return Boolean(clientId() && endpoint());
