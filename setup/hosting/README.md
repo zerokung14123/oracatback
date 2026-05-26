@@ -164,6 +164,25 @@ https://your-site.netlify.app
 3. ตั้ง DNS ตามที่ Netlify แสดง
 4. รอ SSL certificate พร้อม แล้วเปิดเว็บด้วย `https://`
 
+## Render Deploy
+
+ถ้าต้องการ deploy บน Render ให้ใช้ Web Service ไม่ใช่ Static Site เพราะแอปนี้มี backend API สำหรับ runtime config และ Google OAuth:
+
+```txt
+Build command: npm install && npm run build
+Start command: npm start
+```
+
+ไฟล์ที่ใช้กับ Render:
+
+```txt
+render.yaml
+server/render-server.mjs
+setup/hosting/render.md
+```
+
+ดูขั้นตอนเต็มและรายการ Environment variables ได้ที่ `setup/hosting/render.md`
+
 ## Upload
 
 Upload app static files ไปยัง host ที่เลือก แล้วเปิดเว็บจาก domain จริงเพื่อตรวจสอบ

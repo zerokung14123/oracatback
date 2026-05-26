@@ -3,10 +3,14 @@
   "version": "0.3.1",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "echo Static site",
-    "dev": "node local-server.mjs",
-    "local": "node local-server.mjs"
+    "start": "node server/render-server.mjs",
+    "dev": "node server/render-server.mjs",
+    "local": "node server/render-server.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.10.0"
