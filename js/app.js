@@ -63,6 +63,8 @@ function setupStaticEventHandlers() {
   bindChange('chartYear', () => renderChart());
   bindChange('chartType', () => renderChart());
   bindInput('searchInput', () => filterJobs());
+  bindChange('filterMonth', () => filterJobs());
+  bindChange('filterJobType', () => filterJobs());
   bindChange('filterStatus', () => filterJobs());
   bindChange('bookingJobSelect', () => renderBookingDocument());
   bindChange('bookingSlipInput', event => loadBookingSlip(event.currentTarget));
@@ -1061,6 +1063,8 @@ function clearAppData(options = {}) {
   closeJobModal?.({ clearDraft: true });
   [
     'searchInput',
+    'filterMonth',
+    'filterJobType',
     'filterStatus',
     'settingSheetId',
     'settingName',

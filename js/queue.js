@@ -420,11 +420,16 @@ async function deleteJob(jobId) {
    RENDER TABLE
    ────────────────────────────────────────────────────────── */
 function renderQueueTable(filterFn = null) {
-  let jobs = getJobs();
+  const allJobs = getJobs();
+  renderQueueFilterOptions(allJobs);
+
+  let jobs = [...allJobs];
   if (filterFn) jobs = jobs.filter(filterFn);
 
-  // Apply search / status filter
+  // Apply search / month / type / status filters
   const search = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+  const month = document.getElementById('filterMonth')?.value || '';
+  const jobType = document.getElementById('filterJobType')?.value || '';
   const status = document.getElementById('filterStatus')?.value || '';
   if (search) {
     jobs = jobs.filter(j => {
@@ -438,6 +443,8 @@ function renderQueueTable(filterFn = null) {
       return haystack.includes(search);
     });
   }
+  if (month) jobs = jobs.filter(j => getJobMonthKey(j) === month);
+  if (jobType) jobs = jobs.filter(j => String(j.type || '') === jobType);
   if (status) jobs = jobs.filter(j => j.status === status);
 
   // Sort by date desc
@@ -471,6 +478,89 @@ function renderQueueTable(filterFn = null) {
     </tr>
   `).join('');
   bindQueueTableActions(tbody);
+}
+
+function renderQueueFilterOptions(jobs) {
+  renderQueueMonthFilterOptions(jobs);
+  renderQueueJobTypeFilterOptions(jobs);
+}
+
+function renderQueueMonthFilterOptions(jobs) {
+  const select = document.getElementById('filterMonth');
+  if (!select) return '';
+
+  const current = select.value;
+  const monthKeys = Array.from(new Set((Array.isArray(jobs) ? jobs : [])
+    .map(getJobMonthKey)
+    .filter(Boolean)))
+    .sort((a, b) => b.localeCompare(a));
+
+  select.innerHTML = [
+    '<option value="">ทุกเดือน</option>',
+    ...monthKeys.map(monthKey => (
+      `<option value="${escAttr(monthKey)}">${escHtml(formatJobMonthLabel(monthKey))}</option>`
+    )),
+  ].join('');
+  select.value = monthKeys.includes(current) ? current : '';
+  return select.value;
+}
+
+function renderQueueJobTypeFilterOptions(jobs) {
+  const select = document.getElementById('filterJobType');
+  if (!select) return '';
+
+  const current = select.value;
+  const types = [];
+  const seen = new Set();
+  const addType = (id, label) => {
+    const cleanId = String(id || '').trim();
+    if (!cleanId || seen.has(cleanId)) return;
+    seen.add(cleanId);
+    types.push({
+      id: cleanId,
+      label: String(label || JOB_TYPE_LABELS[cleanId] || cleanId),
+    });
+  };
+
+  const activeTypes = typeof activeJobTypes === 'function'
+    ? activeJobTypes()
+    : Object.entries(JOB_TYPE_LABELS).map(([id, label]) => ({ id, label }));
+  activeTypes.forEach(type => addType(type.id, type.label));
+
+  const jobTypeIds = Array.from(new Set((Array.isArray(jobs) ? jobs : [])
+    .map(job => String(job?.type || '').trim())
+    .filter(Boolean)))
+    .sort((a, b) => (JOB_TYPE_LABELS[a] || a).localeCompare(JOB_TYPE_LABELS[b] || b, 'th'));
+  jobTypeIds.forEach(id => addType(id, JOB_TYPE_LABELS[id] || id));
+
+  select.innerHTML = [
+    '<option value="">ประเภทงานทั้งหมด</option>',
+    ...types.map(type => (
+      `<option value="${escAttr(type.id)}">${escHtml(type.label)}</option>`
+    )),
+  ].join('');
+  select.value = types.some(type => type.id === current) ? current : '';
+  return select.value;
+}
+
+function getJobMonthKey(job) {
+  const raw = String(job?.date || '').trim();
+  if (!raw) return '';
+  const match = raw.match(/^(\d{4})-(\d{2})-\d{2}$/);
+  if (match) return `${match[1]}-${match[2]}`;
+
+  const d = new Date(`${raw}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function formatJobMonthLabel(monthKey) {
+  const [year, month] = String(monthKey || '').split('-').map(Number);
+  if (!year || !month) return monthKey;
+
+  const d = new Date(year, month - 1, 1);
+  if (Number.isNaN(d.getTime())) return monthKey;
+  return d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
 }
 
 function bindQueueTableActions(tbody) {
