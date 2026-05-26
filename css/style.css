@@ -86,6 +86,20 @@ body.auth-ready .login-gate {
   font-weight: 700;
 }
 
+.login-panel .login-brand {
+  justify-content: center;
+}
+
+.brand-logo {
+  display: block;
+  width: min(100%, 90px);
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 50%;
+  object-fit: cover;
+  filter: drop-shadow(0 0 14px rgba(240, 138, 36, 0.22));
+}
+
 .login-brand em {
   color: var(--gold);
   font-style: normal;
@@ -201,6 +215,14 @@ body.auth-ready .login-gate {
   font-weight: 700;
   color: var(--text);
   letter-spacing: 0;
+}
+
+.sidebar-logo .brand-logo {
+  width: min(100%, 71px);
+}
+
+.privacy-brand .brand-logo {
+  width: min(100%, 90px);
 }
 .logo-icon {
   color: var(--gold-light);

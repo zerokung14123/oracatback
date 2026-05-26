@@ -43,7 +43,7 @@ const CONFIG = {
   FIREBASE_APP_CHECK_SITE_KEY: '',
 
   // -----  App Settings  -----
-  APP_NAME: 'Tinmeaw Manager',
+  APP_NAME: 'Oracat Manager',
   CURRENCY: '฿',
 };
 

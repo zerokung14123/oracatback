@@ -1,8 +1,8 @@
-// Cookie consent banner for PixManager.
+// Cookie consent banner for Oracat Manager.
 // Stores only the user's banner decision; authentication cookies are handled by the backend.
 (function () {
-  const CONSENT_KEY = 'pixmanagerCookieConsent:v1';
-  const DISMISSED_KEY = 'pixmanagerCookieDismissed:v1';
+  const CONSENT_KEY = 'oracatManagerCookieConsent:v1';
+  const DISMISSED_KEY = 'oracatManagerCookieDismissed:v1';
 
   function readStorage(key) {
     try {

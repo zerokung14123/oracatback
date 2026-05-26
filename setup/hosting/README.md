@@ -131,7 +131,7 @@ Build command: เว้นว่าง
 Publish directory: .
 ```
 
-ถ้า repo เป็น monorepo และโฟลเดอร์นี้อยู่ใต้ path อื่น ให้ตั้ง `Base directory` เป็น path ของโฟลเดอร์ `tinmeaw-manager`
+ถ้า repo เป็น monorepo และโฟลเดอร์นี้อยู่ใต้ path อื่น ให้ตั้ง `Base directory` เป็น path ของโฟลเดอร์ `oracat-manager`
 
 ไฟล์ที่ Netlify ใช้:
 

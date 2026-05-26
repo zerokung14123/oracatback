@@ -1,6 +1,6 @@
-# Tinmeaw Manager
+# Oracat Manager
 
-Static web app สำหรับจัดการงาน Tinmeaw Studio
+Static web app สำหรับจัดการงาน Oracat Studio
 
 ## Purpose
 

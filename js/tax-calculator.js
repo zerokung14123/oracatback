@@ -1,6 +1,6 @@
 // ============================================================
 //  tax-calculator.js - โปรแกรมคำนวนภาษี
-//  Adapted from thai_tax_pro_app.html into the PixManager page system.
+//  Adapted from thai_tax_pro_app.html into the Oracat Manager page system.
 // ============================================================
 
 (() => {

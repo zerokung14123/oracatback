@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateLoginGate(null, {
       message: firebaseInitResult === false
         ? 'Firebase ยังไม่ได้ตั้งค่า จึงยังไม่สามารถเข้าสู่ระบบได้'
-        : 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน PixManager',
+        : 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน Oracat Manager',
     });
   }
   loadGoogleAPIs();
@@ -110,7 +110,7 @@ function bindChange(id, handler) {
   document.getElementById(id)?.addEventListener('change', handler);
 }
 
-const TEST_NOTICE_SESSION_PREFIX = 'pixmanagerTestNoticeSeen:';
+const TEST_NOTICE_SESSION_PREFIX = 'oracatManagerTestNoticeSeen:';
 
 /* ──────────────────────────────────────────────────────────
    LOGIN GATE
@@ -152,7 +152,7 @@ function updateLoginGate(user = null, options = {}) {
   document.body.classList.add('auth-locked');
   document.body.classList.remove('auth-pending', 'auth-ready');
   setLoginGateBusy(false);
-  setLoginGateStatus(options.message || 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน PixManager');
+  setLoginGateStatus(options.message || 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน Oracat Manager');
 }
 
 async function handleLoginGateAuth() {
@@ -214,7 +214,7 @@ function closeTestNoticeModal() {
    THEME MANAGER
    ────────────────────────────────────────────────────────── */
 function initTheme() {
-  const savedTheme = localStorage.getItem('pixmanagerTheme') === 'light' ? 'light' : 'dark';
+  const savedTheme = localStorage.getItem('oracatManagerTheme') === 'light' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeToggle(savedTheme);
 }
@@ -223,7 +223,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme');
   const nextTheme = current === 'light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', nextTheme);
-  localStorage.setItem('pixmanagerTheme', nextTheme);
+  localStorage.setItem('oracatManagerTheme', nextTheme);
   updateThemeToggle(nextTheme);
   renderChart();
 }

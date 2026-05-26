@@ -6,7 +6,7 @@
 
 const BOOKING_CANVAS_WIDTH = 1080;
 const BOOKING_CANVAS_HEIGHT = 1528;
-const BOOKING_TEMPLATE_NAME = 'pixmanager-booking-luxury-v3';
+const BOOKING_TEMPLATE_NAME = 'oracat-manager-booking-luxury-v3';
 const BOOKING_FONT = '"Segoe UI", Tahoma, sans-serif';
 const BOOKING_MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const DEFAULT_BOOKING_TERMS = 'สอบถามรายละเอียดเพิ่มเติม Inbox ได้เลยจ้า';
@@ -488,7 +488,7 @@ function drawBookingDivider(ctx, x, y, w) {
    ============================================================ */
 
 function bookingStudioName(settings) {
-  return String(settings?.studioName || '').trim() || 'Tinmeawfoto';
+  return String(settings?.studioName || '').trim() || 'Oracat Studio';
 }
 
 function bookingContact(settings, overrides = {}) {
@@ -618,7 +618,7 @@ function drawImageCover(ctx, image, x, y, w, h) {
 }
 
 function drawFittedText(ctx, text, x, y, maxWidth, startSize, minSize, weight, family, color) {
-  const value = String(text || '').trim() || 'Tinmeawfoto';
+  const value = String(text || '').trim() || 'Oracat Studio';
   let size = startSize;
   ctx.fillStyle = color;
   do {

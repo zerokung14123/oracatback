@@ -1,17 +1,17 @@
-# รายงานสรุปเว็บไซต์ Tinmeaw Manager
+# รายงานสรุปเว็บไซต์ Oracat Manager
 
 วันที่จัดทำ: 25 พฤษภาคม 2569  
-โฟลเดอร์สำหรับอัปโหลดขึ้น Hosting: `D:\webapp\tinmeaw-manager`
+โฟลเดอร์สำหรับอัปโหลดขึ้น Hosting: `D:\webapp\oracat-manager`
 
 ## 1. ภาพรวมเว็บไซต์
 
-Tinmeaw Manager เป็นเว็บแอปแบบ Static Single Page Application สำหรับจัดการงานถ่ายภาพของ Tinmeaw Studio ใช้งานผ่านหน้าเว็บโดยตรง และเชื่อมต่อบริการภายนอกเพื่อจัดเก็บ/ซิงก์ข้อมูล ได้แก่ Firebase, Google Sheets และ Google Calendar
+Oracat Manager เป็นเว็บแอปแบบ Static Single Page Application สำหรับจัดการงานถ่ายภาพของ Oracat Studio ใช้งานผ่านหน้าเว็บโดยตรง และเชื่อมต่อบริการภายนอกเพื่อจัดเก็บ/ซิงก์ข้อมูล ได้แก่ Firebase, Google Sheets และ Google Calendar
 
 เว็บไซต์ออกแบบให้ใช้สำหรับงานหลังบ้าน เช่น จัดการคิวงาน รายรับ เอกสารใบจอง การตั้งค่าธุรกิจ และโปรแกรมคำนวณภาษี โดยมีระบบ Login ก่อนเข้าใช้งาน
 
 ## 2. สถานะปัจจุบัน
 
-- อัปเดตโค้ดจากชุด local ไปยังโฟลเดอร์ `tinmeaw-manager` แล้ว
+- อัปเดตโค้ดจากชุด local ไปยังโฟลเดอร์ `oracat-manager` แล้ว
 - โฟลเดอร์นี้ถูกเตรียมไว้สำหรับ upload ขึ้น host/domain จริง
 - โหมด Deploy เป็น Static Hosting ไม่ต้องมี build command
 - มีไฟล์ `netlify.toml` สำหรับ Netlify แล้ว
@@ -142,7 +142,7 @@ js/config.js
 
 - `GOOGLE_OAUTH_CLIENT_ID` ยังต้องใส่ Client ID จริง หรือให้ runtime endpoint เป็นผู้จ่ายค่า
 - `SHEET_ID` ยังว่างได้ หากต้องการให้ผู้ใช้ตั้งค่าภายในแอปเอง
-- `FIREBASE_CONFIG` ใส่ค่า public web config ของโปรเจกต์ Tinmeaw แล้ว
+- `FIREBASE_CONFIG` ใส่ค่า public web config ของโปรเจกต์ Oracat แล้ว
 - `FIREBASE_APP_CHECK_SITE_KEY` ยังว่าง หากเปิดใช้ App Check ต้องใส่ site key
 - ห้ามใส่ Google OAuth Client Secret หรือ Firebase service account ลงใน frontend
 
@@ -236,6 +236,6 @@ Publish directory: .
 
 ## 11. สรุปความพร้อม
 
-เว็บไซต์ Tinmeaw Manager พร้อมสำหรับการเตรียม upload ขึ้น hosting ในระดับโค้ดและโครงสร้างไฟล์แล้ว จุดที่ต้องตรวจซ้ำก่อนใช้งานจริงคือ config ของ Google OAuth, Firebase Authorized domains, Firestore Rules และการทดสอบบน domain จริงหลัง deploy
+เว็บไซต์ Oracat Manager พร้อมสำหรับการเตรียม upload ขึ้น hosting ในระดับโค้ดและโครงสร้างไฟล์แล้ว จุดที่ต้องตรวจซ้ำก่อนใช้งานจริงคือ config ของ Google OAuth, Firebase Authorized domains, Firestore Rules และการทดสอบบน domain จริงหลัง deploy
 
 เมื่อ deploy แล้ว ควรทดสอบ workflow สำคัญตั้งแต่ Login, เพิ่มคิวงาน, สร้างใบจอง, ดูรายรับ, hover tooltip บนกราฟ, ใช้โปรแกรมคำนวณภาษี และ sync กับ Google Sheets/Calendar ให้ครบก่อนส่งใช้งานจริง
