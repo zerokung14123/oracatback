@@ -64,8 +64,8 @@ async function exchangeCode(request, body, headers) {
   const code = String(body.code || '').trim();
   if (!code) return json({ error: 'Missing authorization code' }, 400, headers);
 
-  const redirectUri = String(body.redirectUri || request.headers.get('origin') || '').trim();
-  const redirectOrigin = normalizedOrigin(redirectUri);
+  const requestOriginValue = String(body.origin || body.redirectUri || request.headers.get('origin') || '').trim();
+  const redirectOrigin = normalizedOrigin(requestOriginValue);
   if (!redirectOrigin || !allowedOrigins(request.url).has(redirectOrigin)) {
     return json({ error: 'Invalid redirect URI' }, 403, headers);
   }
@@ -76,7 +76,7 @@ async function exchangeCode(request, body, headers) {
       code,
       client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
       client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-      redirect_uri: redirectUri,
+      redirect_uri: oauthRedirectUri(),
       grant_type: 'authorization_code',
     });
   } catch (error) {
@@ -265,6 +265,10 @@ function assertEnv() {
   if (missing.length) {
     throw new Error(`Missing required .env.local values: ${missing.join(', ')}`);
   }
+}
+
+function oauthRedirectUri() {
+  return String(process.env.GOOGLE_OAUTH_REDIRECT_URI || 'postmessage').trim();
 }
 
 function corsHeaders(origin, requestUrl) {

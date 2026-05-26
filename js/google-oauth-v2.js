@@ -209,7 +209,7 @@ const googleOAuthV3 = (() => {
     const payload = await postTokenAction({
       action: 'exchange',
       code,
-      redirectUri: window.location.origin,
+      origin: window.location.origin,
     });
     await applyTokenPayload(payload);
     showToast('เชื่อมต่อ Google v3 สำเร็จ', 'success');

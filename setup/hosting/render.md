@@ -67,7 +67,7 @@ https://oracat-manager.onrender.com,https://your-domain.com
 - Firebase Authentication > Settings > Authorized domains
 - Google Cloud Console > OAuth Client > Authorized JavaScript origins
 
-ถ้าใช้ Google OAuth code flow ให้ redirect origin ต้องตรงกับ domain ที่เปิดเว็บจริง เช่น:
+Google OAuth ของแอปนี้ใช้ popup code flow ของ Google Identity Services โดย backend แลก code ด้วย `redirect_uri=postmessage` ดังนั้นค่าที่ต้องตรงที่สุดคือ Authorized JavaScript origins และ `ALLOWED_ORIGINS` เช่น:
 
 ```txt
 https://oracat-manager.onrender.com

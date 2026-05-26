@@ -188,7 +188,7 @@ function getGoogleLoginTimeoutMessage() {
   if (lastLoginError) return lastLoginError;
   if (runtimeError) return `Google Login ยังไม่สำเร็จ: ${runtimeError}`;
   if (!clientId) return 'Google Login ยังไม่สำเร็จ: ไม่พบ GOOGLE_OAUTH_CLIENT_ID จาก backend config';
-  return `Google Login ยังไม่สำเร็จ: ตรวจ Firebase Authentication, Netlify Function logs และ OAuth origin ${origin}`;
+  return `Google Login ยังไม่สำเร็จ: ตรวจ Firebase Authentication, Render logs และ OAuth origin ${origin}`;
 }
 
 function testNoticeSessionKey(user) {
