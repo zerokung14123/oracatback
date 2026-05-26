@@ -76,7 +76,7 @@ async function exchangeCode(request, body, headers) {
       code,
       client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
       client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-      redirect_uri: oauthRedirectUri(),
+      redirect_uri: oauthRedirectUri(redirectOrigin),
       grant_type: 'authorization_code',
     });
   } catch (error) {
@@ -267,8 +267,8 @@ function assertEnv() {
   }
 }
 
-function oauthRedirectUri() {
-  return String(process.env.GOOGLE_OAUTH_REDIRECT_URI || 'postmessage').trim();
+function oauthRedirectUri(origin) {
+  return String(process.env.GOOGLE_OAUTH_REDIRECT_URI || origin || '').trim();
 }
 
 function corsHeaders(origin, requestUrl) {
