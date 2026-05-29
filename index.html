@@ -522,6 +522,24 @@
     </div>
   </div>
 
+  <!-- JOB DETAIL MODAL -->
+  <div class="modal-overlay job-detail-overlay" id="jobDetailModal" role="dialog" aria-modal="true" aria-labelledby="jobDetailTitle">
+    <div class="modal job-detail-modal">
+      <div class="modal-header">
+        <h3 id="jobDetailTitle">รายละเอียดคิวงาน</h3>
+        <button class="modal-close" type="button" data-job-detail-close>✕</button>
+      </div>
+      <div class="modal-body job-detail-body" id="jobDetailBody">
+        <div class="empty-state">ยังไม่ได้เลือกคิวงาน</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" type="button" data-job-detail-close>ปิด</button>
+        <button class="btn-secondary" type="button" id="jobDetailBookingBtn">ดูใบจอง</button>
+        <button class="btn-primary" type="button" id="jobDetailEditBtn">แก้ไขงาน</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BOOKING PREVIEW MODAL -->
   <div class="modal-overlay booking-preview-overlay" id="bookingPreviewModal">
     <div class="modal booking-preview-modal">

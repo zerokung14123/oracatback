@@ -5,6 +5,7 @@
 let editingJobId = null;
 let jobsCache = [];
 let previewBookingJobId = null;
+let detailJobId = null;
 let preserveNewJobDraft = false;
 
 /* ──────────────────────────────────────────────────────────
@@ -470,7 +471,8 @@ function renderQueueTable(filterFn = null) {
       <td style="color:var(--gold-light);font-weight:600">${formatCurrency(j.price)}</td>
       <td>${renderCashCheckbox(j)}</td>
       <td>${renderJobStatusCell(j, i)}</td>
-      <td>
+      <td class="job-actions">
+        <button class="action-btn" type="button" data-job-action="detail" data-job-id="${escAttr(j.id)}">รายละเอียด</button>
         ${j.bookingDocument?.dataUrl ? `<button class="action-btn" type="button" data-job-action="booking" data-job-id="${escAttr(j.id)}">ใบจอง</button>` : ''}
         <button class="action-btn" type="button" data-job-action="edit" data-job-id="${escAttr(j.id)}">แก้ไข</button>
         <button class="action-btn del" type="button" data-job-action="delete" data-job-id="${escAttr(j.id)}">ลบ</button>
@@ -568,7 +570,9 @@ function bindQueueTableActions(tbody) {
     button.addEventListener('click', () => {
       const jobId = button.dataset.jobId || '';
       if (!jobId) return;
-      if (button.dataset.jobAction === 'booking') {
+      if (button.dataset.jobAction === 'detail') {
+        openJobDetailModal(jobId);
+      } else if (button.dataset.jobAction === 'booking') {
         openJobBookingDocumentModal(jobId);
       } else if (button.dataset.jobAction === 'edit') {
         openJobModal(jobId);
@@ -590,6 +594,197 @@ function bindQueueTableActions(tbody) {
 }
 
 function filterJobs() { renderQueueTable(); }
+
+function openJobDetailModal(jobId) {
+  const job = getJobs().find(item => item.id === jobId);
+  if (!job) {
+    showToast('ไม่พบคิวงานที่เลือก', 'error');
+    renderQueueTable();
+    return;
+  }
+
+  detailJobId = jobId;
+  const modal = document.getElementById('jobDetailModal');
+  const title = document.getElementById('jobDetailTitle');
+  const body = document.getElementById('jobDetailBody');
+  const bookingButton = document.getElementById('jobDetailBookingBtn');
+
+  if (title) title.textContent = `รายละเอียดคิวงาน - ${job.client || 'ลูกค้า'}`;
+  if (body) body.innerHTML = renderJobDetail(job);
+  if (bookingButton) {
+    const hasBookingDocument = Boolean(job.bookingDocument?.dataUrl);
+    bookingButton.hidden = !hasBookingDocument;
+    bookingButton.disabled = !hasBookingDocument;
+  }
+  modal?.classList.add('open');
+}
+
+function closeJobDetailModal() {
+  document.getElementById('jobDetailModal')?.classList.remove('open');
+  const body = document.getElementById('jobDetailBody');
+  if (body) body.innerHTML = '<div class="empty-state">ยังไม่ได้เลือกคิวงาน</div>';
+  detailJobId = null;
+}
+
+function editCurrentJobDetail() {
+  if (!detailJobId) {
+    showToast('ไม่พบคิวงานที่เลือก', 'error');
+    return;
+  }
+  const jobId = detailJobId;
+  closeJobDetailModal();
+  openJobModal(jobId);
+}
+
+function openCurrentJobDetailBooking() {
+  if (!detailJobId) {
+    showToast('ไม่พบคิวงานที่เลือก', 'error');
+    return;
+  }
+  const jobId = detailJobId;
+  closeJobDetailModal();
+  openJobBookingDocumentModal(jobId);
+}
+
+function renderJobDetail(job) {
+  const status = String(job.status || 'pending');
+  const statusClass = ['pending', 'confirmed', 'done', 'cancelled'].includes(status) ? status : 'pending';
+  const statusLabel = STATUS_LABELS[status] || status || '-';
+  const typeLabel = JOB_TYPE_LABELS[job.type] || job.type || '-';
+  const price = nonNegativeNumber(job.price);
+  const deposit = nonNegativeNumber(job.deposit);
+  const balance = Math.max(0, price - deposit);
+  const dateLabel = formatDate(job.date);
+  const timeLabel = formatJobTimeRange(job);
+
+  return `
+    <div class="job-detail-summary">
+      <div class="job-detail-heading">
+        <span class="job-detail-eyebrow">คิวงาน</span>
+        <strong>${escHtml(job.client || 'ไม่ระบุชื่อลูกค้า')}</strong>
+        <small>${escHtml(typeLabel)} · ${escHtml(dateLabel)}</small>
+      </div>
+      <span class="status-badge status-${escAttr(statusClass)}">${escHtml(statusLabel)}</span>
+    </div>
+
+    <div class="job-detail-grid">
+      ${renderJobDetailItem('วันที่', dateLabel)}
+      ${renderJobDetailItem('เวลา', timeLabel)}
+      ${renderJobDetailItem('ประเภทงาน', typeLabel)}
+      ${renderJobDetailItem('สถานที่', job.location || '-')}
+      ${renderJobDetailItem('ราคาเต็ม', formatCurrency(price), true)}
+      ${renderJobDetailItem('มัดจำ', formatCurrency(deposit))}
+      ${renderJobDetailItem('ยอดคงเหลือ', formatCurrency(balance), true)}
+      ${renderJobDetailItem('รับเงินสด', job.isCash ? 'ใช่' : 'ไม่ใช่')}
+      ${status === 'cancelled' ? renderJobDetailItem('คืนมัดจำแล้ว', job.depositRefunded ? 'ใช่' : 'ยังไม่คืน') : ''}
+    </div>
+
+    ${renderJobDetailNote(job)}
+    ${renderJobDetailAssets(job)}
+    ${renderJobDetailTimestamps(job)}
+  `;
+}
+
+function renderJobDetailItem(label, value, highlight = false) {
+  const displayValue = value === undefined || value === null || value === '' ? '-' : value;
+  return `
+    <div class="job-detail-item${highlight ? ' highlight' : ''}">
+      <span>${escHtml(label)}</span>
+      <strong>${escHtml(displayValue)}</strong>
+    </div>
+  `;
+}
+
+function renderJobDetailNote(job) {
+  const note = String(job.note || '').trim();
+  return `
+    <section class="job-detail-section">
+      <h4>หมายเหตุ</h4>
+      <p class="${note ? 'job-detail-note' : 'job-detail-muted'}">${note ? escHtml(note).replace(/\n/g, '<br>') : 'ไม่มีหมายเหตุ'}</p>
+    </section>
+  `;
+}
+
+function renderJobDetailAssets(job) {
+  const images = Array.isArray(job.images) ? job.images : [];
+  const bookingDocument = job.bookingDocument?.dataUrl ? job.bookingDocument : null;
+  const assets = [];
+
+  if (bookingDocument) {
+    assets.push({
+      label: 'ใบจอง',
+      name: bookingDocument.fileName || 'booking.jpg',
+      dataUrl: bookingDocument.dataUrl,
+    });
+  }
+
+  images.forEach((image, index) => {
+    assets.push({
+      label: image.name || `รูป ${index + 1}`,
+      name: image.name || `image-${index + 1}.jpg`,
+      dataUrl: image.dataUrl,
+    });
+  });
+
+  if (!assets.length) {
+    return `
+      <section class="job-detail-section">
+        <h4>ไฟล์แนบ</h4>
+        <p class="job-detail-muted">ยังไม่มีรูปหรือใบจองที่บันทึกไว้</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="job-detail-section">
+      <h4>ไฟล์แนบ</h4>
+      <div class="job-detail-assets">
+        ${assets.map(asset => renderJobDetailAsset(asset)).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderJobDetailAsset(asset) {
+  const href = safeAssetUrl(asset.dataUrl);
+  const downloadAttr = href === '#' ? '' : ` download="${escAttr(safeFileName(asset.name || 'download.jpg'))}"`;
+  return `
+    <a class="job-detail-asset" href="${escAttr(href)}"${downloadAttr}>
+      <span>${escHtml(asset.label || 'ไฟล์แนบ')}</span>
+      <small>${href === '#' ? 'เปิดไม่ได้' : 'ดาวน์โหลด'}</small>
+    </a>
+  `;
+}
+
+function renderJobDetailTimestamps(job) {
+  if (!job.createdAt && !job.updatedAt) return '';
+  return `
+    <div class="job-detail-timestamps">
+      ${job.createdAt ? `<span>สร้างเมื่อ ${escHtml(formatDateTime(job.createdAt))}</span>` : ''}
+      ${job.updatedAt ? `<span>แก้ไขล่าสุด ${escHtml(formatDateTime(job.updatedAt))}</span>` : ''}
+    </div>
+  `;
+}
+
+function formatJobTimeRange(job) {
+  const start = String(job.startTime || '').trim();
+  const end = String(job.endTime || '').trim();
+  if (start && end) return `${start} - ${end}`;
+  return start || end || '-';
+}
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 function openJobBookingDocumentModal(jobId) {
   const job = getJobs().find(item => item.id === jobId);
@@ -856,6 +1051,10 @@ function safeAssetUrl(value) {
 
 window.setJobsFromFirebase = setJobsFromFirebase;
 window.clearJobsCache = clearJobsCache;
+window.openJobDetailModal = openJobDetailModal;
+window.closeJobDetailModal = closeJobDetailModal;
+window.editCurrentJobDetail = editCurrentJobDetail;
+window.openCurrentJobDetailBooking = openCurrentJobDetailBooking;
 window.openJobBookingDocumentModal = openJobBookingDocumentModal;
 window.closeBookingPreviewModal = closeBookingPreviewModal;
 window.downloadCurrentBookingDocument = downloadCurrentBookingDocument;

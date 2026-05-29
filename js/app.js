@@ -57,6 +57,8 @@ function setupStaticEventHandlers() {
   bindClick('saveBusinessInfoBtn', () => saveBusinessInfo());
   bindClick('addJobTypeBtn', () => addJobTypeSetting());
   bindClick('saveJobBtn', () => saveJob());
+  bindClick('jobDetailEditBtn', () => editCurrentJobDetail());
+  bindClick('jobDetailBookingBtn', () => openCurrentJobDetailBooking());
   bindClick('downloadCurrentBookingBtn', () => downloadCurrentBookingDocument());
   bindClick('themeToggleBtn', () => toggleTheme());
 
@@ -77,6 +79,9 @@ function setupStaticEventHandlers() {
   document.querySelectorAll('[data-job-modal-close]').forEach(button => {
     button.addEventListener('click', () => closeJobModal({ clearDraft: true }));
   });
+  document.querySelectorAll('[data-job-detail-close]').forEach(button => {
+    button.addEventListener('click', () => closeJobDetailModal());
+  });
   document.querySelectorAll('[data-booking-preview-close]').forEach(button => {
     button.addEventListener('click', () => closeBookingPreviewModal());
   });
@@ -90,6 +95,11 @@ function setupStaticEventHandlers() {
   const loginAlertModal = document.getElementById('loginAlertModal');
   loginAlertModal?.addEventListener('click', event => {
     if (event.target === loginAlertModal) closeLoginAlertModal();
+  });
+
+  const jobDetailModal = document.getElementById('jobDetailModal');
+  jobDetailModal?.addEventListener('click', event => {
+    if (event.target === jobDetailModal) closeJobDetailModal();
   });
 
   const bookingPreviewModal = document.getElementById('bookingPreviewModal');
@@ -1061,6 +1071,8 @@ function clearAppData(options = {}) {
   resetSettingsState();
   window.resetTaxCalculator?.();
   closeJobModal?.({ clearDraft: true });
+  closeJobDetailModal?.();
+  closeBookingPreviewModal?.();
   [
     'searchInput',
     'filterMonth',
@@ -1121,6 +1133,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeTestNoticeModal();
     closeLoginAlertModal();
+    closeJobDetailModal();
+    closeBookingPreviewModal();
     closeJobModal({ preserveDraft: true });
   }
   if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
