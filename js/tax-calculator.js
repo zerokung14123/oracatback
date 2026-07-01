@@ -1,5 +1,5 @@
 // ============================================================
-//  tax-calculator.js - โปรแกรมคำนวนภาษี
+//  tax-calculator.js - โปรแกรมคำนวณภาษี
 //  Adapted from thai_tax_pro_app.html into the Oracat Manager page system.
 // ============================================================
 
@@ -356,7 +356,7 @@
   }
 
   function renderResultTab(data) {
-    if (!data.income) return renderEmptyPrompt('กรุณากรอกรายได้ก่อนดูผลคำนวน', 'income');
+    if (!data.income) return renderEmptyPrompt('กรุณากรอกรายได้ก่อนดูผลคำนวณ', 'income');
 
     const rateWidth = Math.min((data.effectiveRate / 35) * 100, 100);
     return `

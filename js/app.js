@@ -286,7 +286,7 @@ const PAGE_TITLES = {
   dashboard: 'Dashboard',
   queue: 'คิวงาน',
   revenue: 'รายรับ',
-  tax: 'โปรแกรมคำนวนภาษี',
+  tax: 'โปรแกรมคำนวณภาษี',
   documents: 'เอกสาร',
   settings: 'ตั้งค่า',
 };

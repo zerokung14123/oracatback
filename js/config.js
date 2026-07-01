@@ -97,8 +97,14 @@ function sheetRange(sheetName, range) {
   return `'${escaped}'!${range}`;
 }
 
+function generateUniqueId(prefix = 'id') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 if (typeof window !== 'undefined') {
   window.CONFIG = CONFIG;
   window.JOB_TYPE_LABELS = JOB_TYPE_LABELS;
   window.STATUS_LABELS = STATUS_LABELS;
+  window.generateUniqueId = generateUniqueId;
 }
+

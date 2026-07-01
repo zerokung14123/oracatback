@@ -616,7 +616,7 @@ async function findCalendarEvents(calId, jobId) {
 }
 
 function calendarEventIdForJob(jobId) {
-  const input = String(jobId || generateId());
+  const input = String(jobId || window.generateUniqueId('job'));
   let hex = '';
   for (let i = 0; i < input.length; i++) {
     hex += input.charCodeAt(i).toString(16).padStart(4, '0');
@@ -688,3 +688,5 @@ window.getGoogleAccessToken = () => accessToken;
 window.isGoogleSignedIn = () => isSignedIn;
 window.checkSpreadsheetExists = checkSpreadsheetExists;
 window.createBookingSpreadsheet = createBookingSpreadsheet;
+window.applyGoogleAccessToken = applyGoogleAccessToken;
+window.clearGoogleAccessToken = clearGoogleAccessToken;

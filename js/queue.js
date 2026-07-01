@@ -42,7 +42,7 @@ function clearJobsCache() {
 }
 
 function generateId() {
-  return 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  return window.generateUniqueId('job');
 }
 
 function isFirebaseDataReady() {

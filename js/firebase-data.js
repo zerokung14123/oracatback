@@ -92,7 +92,7 @@ function normalizeJob(job) {
   const now = new Date().toISOString();
   return stripUndefined({
     ...job,
-    id: String(job?.id || generateId()),
+    id: String(job?.id || window.generateUniqueId('job')),
     client: String(job?.client || ''),
     type: String(job?.type || 'custom'),
     date: String(job?.date || ''),
@@ -114,7 +114,7 @@ function normalizeJob(job) {
 
 function normalizeJobImages(images) {
   return (Array.isArray(images) ? images : []).map(image => stripUndefined({
-    id: String(image?.id || generateId()),
+    id: String(image?.id || window.generateUniqueId('img')),
     name: String(image?.name || ''),
     mimeType: String(image?.mimeType || ''),
     size: nonNegativeNumber(image?.size),
