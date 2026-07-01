@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPickerIconClicks();
   setupStaticEventHandlers();
   initTheme();
+  startInactivityCheck();
 
   // Nav buttons
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -25,12 +26,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   const firebaseInitResult = await window.initFirebaseData?.();
+  const wasLoggedIn = localStorage.getItem('oracat_logged_in') === 'true';
+  const lastActive = Number(localStorage.getItem('oracat_last_activity') || 0);
+  const isExpired = lastActive && (Date.now() - lastActive > 15 * 60 * 1000);
+
   if (!window.firebaseData?.currentUser?.()) {
-    updateLoginGate(null, {
-      message: firebaseInitResult === false
-        ? 'Firebase ยังไม่ได้ตั้งค่า จึงยังไม่สามารถเข้าสู่ระบบได้'
-        : 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน Oracat Manager',
-    });
+    if (wasLoggedIn && !isExpired) {
+      window.setTimeout(() => {
+        if (!window.firebaseData?.currentUser?.()) {
+          updateLoginGate(null, {
+            message: 'เซสชันหมดอายุหรือโปรดเข้าสู่ระบบใหม่',
+          });
+        }
+      }, 3000);
+    } else {
+      updateLoginGate(null, {
+        message: firebaseInitResult === false
+          ? 'Firebase ยังไม่ได้ตั้งค่า จึงยังไม่สามารถเข้าสู่ระบบได้'
+          : 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน Oracat Manager',
+      });
+    }
   }
   loadGoogleAPIs();
   await window.googleOAuthV3?.init?.();
@@ -85,9 +100,7 @@ function setupStaticEventHandlers() {
   document.querySelectorAll('[data-booking-preview-close]').forEach(button => {
     button.addEventListener('click', () => closeBookingPreviewModal());
   });
-  document.querySelectorAll('[data-test-notice-close]').forEach(button => {
-    button.addEventListener('click', () => closeTestNoticeModal());
-  });
+
   document.querySelectorAll('[data-login-alert-close]').forEach(button => {
     button.addEventListener('click', () => closeLoginAlertModal());
   });
@@ -207,17 +220,38 @@ function testNoticeSessionKey(user) {
 }
 
 function showTestNoticeAfterLogin(user) {
-  const modal = document.getElementById('testNoticeModal');
-  if (!modal || !user) return;
-
-  const key = testNoticeSessionKey(user);
-  if (sessionStorage.getItem(key) === '1') return;
-  sessionStorage.setItem(key, '1');
-  modal.classList.add('open');
+  // Disabled trial notice pop-up
 }
 
 function closeTestNoticeModal() {
-  document.getElementById('testNoticeModal')?.classList.remove('open');
+  // Disabled trial notice pop-up
+}
+
+let lastActivitySaved = 0;
+function resetActivityTimer() {
+  if (!window.firebaseData?.currentUser?.()) return;
+  const now = Date.now();
+  if (now - lastActivitySaved > 5000) {
+    localStorage.setItem('oracat_last_activity', now.toString());
+    lastActivitySaved = now;
+  }
+}
+
+function startInactivityCheck() {
+  const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+  ACTIVITY_EVENTS.forEach(event => {
+    window.addEventListener(event, resetActivityTimer, { passive: true });
+  });
+
+  window.setInterval(() => {
+    if (window.firebaseData?.currentUser?.()) {
+      const lastActive = Number(localStorage.getItem('oracat_last_activity') || 0);
+      if (lastActive && (Date.now() - lastActive > 15 * 60 * 1000)) {
+        showToast?.('เซสชันหมดอายุเนื่องจากไม่มีการเคลื่อนไหวเป็นเวลา 15 นาที', 'warning');
+        window.firebaseData?.signOut?.();
+      }
+    }
+  }, 10000);
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -375,6 +409,8 @@ const APP_LOCAL_DATA_KEYS = [
   'lastSheetSync',
   'deletedJobIds',
   'calendarDeleteQueue',
+  'oracat_last_activity',
+  'oracat_logged_in',
 ];
 
 const sheetAccessState = {
@@ -1109,7 +1145,6 @@ window.isSheetSetupRequired = isSheetSetupRequired;
 window.scheduleSheetAccessCheck = scheduleSheetAccessCheck;
 window.updateLoginGate = updateLoginGate;
 window.handleLoginGateAuth = handleLoginGateAuth;
-window.closeTestNoticeModal = closeTestNoticeModal;
 
 /* ──────────────────────────────────────────────────────────
    TOAST NOTIFICATIONS
@@ -1131,7 +1166,6 @@ window.showToast = showToast;
    ────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    closeTestNoticeModal();
     closeLoginAlertModal();
     closeJobDetailModal();
     closeBookingPreviewModal();

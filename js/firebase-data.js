@@ -429,12 +429,30 @@ if (isAppCheckConfigured()) {
     if (!user) {
       firebaseState.user = null;
       firebaseState.snapshotLoaded = false;
+      localStorage.setItem('oracat_logged_in', 'false');
+      localStorage.removeItem('oracat_last_activity');
       window.clearAppData?.({ clearPersistent: true, quiet: true });
       updateFirebaseAuthUI(null);
       return;
     }
 
+    // Check if session has expired based on inactivity
+    const lastActive = Number(localStorage.getItem('oracat_last_activity') || 0);
+    const isExpired = lastActive && (Date.now() - lastActive > 15 * 60 * 1000);
+    if (isExpired) {
+      firebaseState.user = null;
+      firebaseState.snapshotLoaded = false;
+      localStorage.setItem('oracat_logged_in', 'false');
+      localStorage.removeItem('oracat_last_activity');
+      window.clearAppData?.({ clearPersistent: true, quiet: true });
+      updateFirebaseAuthUI(null);
+      if (firebaseState.auth) await firebaseSignOut(firebaseState.auth);
+      return;
+    }
+
     firebaseState.user = user;
+    localStorage.setItem('oracat_logged_in', 'true');
+    localStorage.setItem('oracat_last_activity', Date.now().toString());
     updateFirebaseAuthUI(user);
     subscribeUserSettings();
     subscribeJobs();

@@ -148,8 +148,8 @@ function googleApiErrorMessage(error, service = '') {
       projectNumber ? `project number ${projectNumber}` : '',
       firebaseProjectId ? `Firebase project ID: ${firebaseProjectId}` : '',
     ].filter(Boolean).join(' / ');
-    const targetText = projectText ? ` ในโปรเจค ${projectText}` : '';
-    return `${apiName} ยังไม่ได้เปิดใช้${targetText} ให้เลือกโปรเจค Firebase เดียวกับแอปใน Google Cloud Console > APIs & Services > Library > ${apiName} แล้วกด Enable ถ้าเปิดแล้วให้รอ 1-5 นาที กดออกจากระบบ Google แล้ว Login ใหม่`;
+    const targetText = projectText ? ` ในโปรเจกต์ ${projectText}` : '';
+    return `${apiName} ยังไม่ได้เปิดใช้${targetText} ให้เลือกโปรเจกต์ Firebase เดียวกับแอปใน Google Cloud Console > APIs & Services > Library > ${apiName} แล้วกด Enable ถ้าเปิดแล้วให้รอ 1-5 นาที กดออกจากระบบ Google แล้ว Login ใหม่`;
   }
 
   if (/insufficient authentication scopes|ACCESS_TOKEN_SCOPE_INSUFFICIENT/i.test(raw)) {

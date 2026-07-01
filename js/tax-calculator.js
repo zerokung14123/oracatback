@@ -30,7 +30,7 @@
 
   const TABS = [
     { id: 'income', label: 'รายได้' },
-    { id: 'result', label: 'ผลคำนวน' },
+    { id: 'result', label: 'ผลคำนวณ' },
     { id: 'advice', label: 'คำแนะนำ' },
     { id: 'guide', label: 'คู่มือลดหย่อน' },
     { id: 'calendar', label: 'ปฏิทินภาษี' },
@@ -323,7 +323,7 @@
             <span>เงินได้สุทธิ</span>
             <strong id="taxNetIncomePreview">${formatCurrency(data.netIncome)}</strong>
           </div>
-          <button class="btn-primary full-width" type="button" data-tax-tab="result">ดูผลคำนวน</button>
+          <button class="btn-primary full-width" type="button" data-tax-tab="result">ดูผลคำนวณ</button>
         </div>
       </div>
     `;
