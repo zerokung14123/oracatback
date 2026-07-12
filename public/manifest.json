@@ -1,0 +1,18 @@
+{
+  "short_name": "OraCat Manager",
+  "name": "ตีนแมวfoto - Manager Dashboard",
+  "description": "ระบบจัดการคิวงานจองของช่างภาพ ตีนแมวfoto",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#d8b76c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
