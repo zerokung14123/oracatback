@@ -7,7 +7,7 @@ const CONFIG = {
   // -----  Google OAuth v3 code flow  -----
   // Static hosting mode: leave backend endpoints blank.
   // Do not put Google client secrets in frontend files.
-  RUNTIME_CONFIG_ENDPOINT: '/api/public-config',
+  RUNTIME_CONFIG_ENDPOINT: '',
   GOOGLE_OAUTH_CLIENT_ID: '',
   GOOGLE_OAUTH_TOKEN_ENDPOINT: '',
   GOOGLE_SESSION_IDLE_LIMIT_MS: 5 * 60 * 1000,
