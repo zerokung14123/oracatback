@@ -397,7 +397,7 @@ window.firebaseData = {
   isReady: isFirebaseReady,
   currentUser,
   jobsCollectionName: getJobsCollectionName,
-  updateAuthUI,
+  updateAuthUI: updateFirebaseAuthUI,
   refreshJobs,
   loadSettings,
   API_BASE,
