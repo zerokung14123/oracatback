@@ -649,31 +649,11 @@ function updateSheetSetupUI() {
   const createInfo = document.getElementById('sheetCreateInfo');
   if (!createButton) return;
 
-  const isBusy = createButton.dataset.busy === '1';
-  const canCreate = isLoggedIn && !isBusy && (!sheetId || sheetAccessState.status === 'missing');
-  createButton.disabled = !canCreate;
-  createButton.textContent = isBusy
-    ? 'กำลังสร้าง Booking Sheet...'
-    : sheetId && sheetAccessState.status !== 'missing'
-      ? 'มี Booking Sheet แล้ว'
-      : 'สร้าง Booking Sheet ใหม่';
+  createButton.disabled = true;
+  createButton.textContent = 'ไม่ใช้งาน Google Sheets';
 
   if (createInfo) {
-    if (!isLoggedIn) {
-      createInfo.textContent = 'Login ก่อนเพื่อสร้างหรือบันทึก Google Sheet';
-    } else if (!sheetId) {
-      createInfo.textContent = 'ผู้ใช้งานใหม่ต้องบันทึก Google Sheet ID หรือสร้าง Booking Sheet ก่อนเริ่มใช้งาน';
-    } else if (sheetAccessState.status === 'missing') {
-      createInfo.textContent = 'ตรวจไม่พบ Sheet ID เดิม สามารถสร้าง Booking Sheet ใหม่ได้';
-    } else if (sheetAccessState.status === 'checking') {
-      createInfo.textContent = 'กำลังตรวจสอบ Google Sheet ID เดิม...';
-    } else if (sheetAccessState.status === 'exists') {
-      createInfo.textContent = `พบ Google Sheet แล้ว: ${sheetAccessState.message || compactId(sheetId)}`;
-    } else if (sheetAccessState.status === 'unverified') {
-      createInfo.textContent = sheetAccessState.message || 'มี Sheet ID แล้ว เชื่อมต่อ Google เพื่อให้ระบบตรวจสอบสิทธิ์';
-    } else {
-      createInfo.textContent = 'มี Google Sheet ID แล้ว ระบบจะปลดล็อกปุ่มสร้างใหม่เมื่อ ID เดิมตรวจไม่พบ';
-    }
+    createInfo.textContent = 'ระบบใช้ Supabase เป็นฐานข้อมูลหลัก ไม่ต้องตั้งค่า Google Sheet';
   }
 }
 
@@ -1377,27 +1357,17 @@ function setLastSheetSyncInfo(info) {
 }
 
 function updateSheetSyncInfo() {
-  const isLoggedIn = Boolean(window.firebaseData?.isReady?.());
-  const info = appSettingsState.lastSheetSync || null;
-  const settings = getSettings();
-  const text = !isLoggedIn
-    ? 'Login ก่อนเพื่อโหลดข้อมูล Google Sheets ของ user นี้'
-    : info
-      ? `ล่าสุด: ${info.title} / แท็บ ${info.tab} (ID: ${compactId(info.id)})`
-      : 'ยังไม่เคย Sync ไป Google Sheets';
+  const isLoggedIn = Boolean(localStorage.getItem('manager_token'));
 
   const settingsEl = document.getElementById('sheetSyncInfo');
-  if (settingsEl) settingsEl.textContent = text;
+  if (settingsEl) settingsEl.textContent = 'ระบบนี้ใช้ Supabase ไม่ต้อง Sync Google Sheets';
 
   const sheetSettingEl = document.getElementById('sheetSettingInfo');
   if (sheetSettingEl) {
-    sheetSettingEl.textContent = !isLoggedIn
-      ? 'Login ก่อนเพื่อโหลด Sheet ID ของ user นี้'
-      : settings.sheetId
-        ? `Sheet ID ที่ใช้งาน: ${compactId(settings.sheetId)}`
-        : 'ต้องตั้งค่า Google Sheet ID หรือกดสร้าง Booking Sheet ก่อนเริ่มใช้งาน';
+    sheetSettingEl.textContent = isLoggedIn
+      ? 'ระบบเชื่อมต่อ Supabase — ไม่ต้องตั้งค่า Google Sheet'
+      : 'กรุณา Login ก่อนใช้งาน';
   }
-  window.firebaseData?.updateAuthUI?.();
   updateSheetSetupUI();
 }
 
