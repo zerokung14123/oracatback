@@ -261,6 +261,9 @@ function resetActivityTimer() {
 }
 
 function startInactivityCheck() {
+  // Initialize current activity timestamp on startup to prevent stale value logouts
+  localStorage.setItem('oracat_last_activity', Date.now().toString());
+
   const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
   ACTIVITY_EVENTS.forEach(event => {
     window.addEventListener(event, resetActivityTimer, { passive: true });
@@ -269,12 +272,13 @@ function startInactivityCheck() {
   window.setInterval(() => {
     if (window.firebaseData?.currentUser?.()) {
       const lastActive = Number(localStorage.getItem('oracat_last_activity') || 0);
-      if (lastActive && (Date.now() - lastActive > 15 * 60 * 1000)) {
-        showToast?.('เซสชันหมดอายุเนื่องจากไม่มีการเคลื่อนไหวเป็นเวลา 15 นาที', 'warning');
+      // Extend timeout to 7 days for private photographer dashboard
+      if (lastActive && (Date.now() - lastActive > 7 * 24 * 60 * 60 * 1000)) {
+        showToast?.('เซสชันหมดอายุหลังจากไม่มีการใช้งานเป็นเวลา 7 วัน', 'warning');
         window.firebaseData?.signOut?.();
       }
     }
-  }, 10000);
+  }, 30000);
 }
 
 /* ──────────────────────────────────────────────────────────
