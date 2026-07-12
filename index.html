@@ -91,6 +91,11 @@
       </button>
     </nav>
     <div class="sidebar-footer">
+      <button class="google-auth-btn" id="googleAuthBtn" type="button">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18"/>
+        <span id="googleAuthLabel">เชื่อมต่อ Google</span>
+      </button>
+      <div class="sync-status" id="syncStatus">● ยังไม่ได้เชื่อมต่อ</div>
       <div class="app-version">Oracat Manager v0.3.1</div>
       <div class="footer-links">
         <a href="index.html">เว็บไซต์</a>
@@ -468,18 +473,6 @@
     <!-- ===== SETTINGS PAGE ===== -->
     <section class="page" id="page-settings">
       <div class="settings-layout">
-        <div class="card">
-          <div class="card-header"><h3>การเชื่อมต่อบัญชี Google</h3></div>
-          <div class="settings-hint">เชื่อมต่อบัญชี Google ของคุณเพื่อซิงค์ข้อมูลคิวงานไปยัง Google Calendar และ Google Sheets อัตโนมัติ</div>
-          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
-            <button class="google-auth-btn" id="googleAuthBtn" type="button" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-gold); background: #050505; color: var(--text); font-weight: bold; cursor: pointer;">
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18"/>
-              <span id="googleAuthLabel">เชื่อมต่อ Google</span>
-            </button>
-            <div class="sync-status" id="syncStatus" style="text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--text-dim);">● ยังไม่ได้เชื่อมต่อ</div>
-          </div>
-        </div>
-
         <div class="card">
           <div class="card-header"><h3>Google Sheets</h3></div>
           <div class="form-group">
