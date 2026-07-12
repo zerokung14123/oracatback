@@ -1,6 +1,3 @@
-import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
 const COOKIE_NAME = 'pm_v3_google_refresh';
@@ -87,19 +84,13 @@ async function exchangeCode(request, body, headers) {
   const user = await fetchUser(tokens.access_token);
   if (!user?.sub) return json({ error: 'Google profile did not include user id' }, 401, headers);
   if (!user?.email) return json({ error: 'Google profile did not include email' }, 401, headers);
-  let firebase;
-  try {
-    firebase = await createFirebaseLogin(user);
-  } catch (error) {
-    console.error('Firebase custom token creation failed:', error);
-    return json({ error: `Firebase login failed: ${safeErrorMessage(error)}` }, 500, headers);
-  }
+
   const responseHeaders = { ...headers };
   if (tokens.refresh_token) {
     responseHeaders['Set-Cookie'] = refreshCookie(tokens.refresh_token);
   }
 
-  return json(publicTokenPayload(tokens, user, firebase), 200, responseHeaders);
+  return json(publicTokenPayload(tokens, user), 200, responseHeaders);
 }
 
 async function refreshAccessToken(request, headers) {
@@ -130,17 +121,7 @@ async function refreshAccessToken(request, headers) {
       'Set-Cookie': clearCookie(),
     });
   }
-  let firebase;
-  try {
-    firebase = await createFirebaseLogin(user);
-  } catch (error) {
-    console.error('Firebase custom token refresh failed:', error);
-    return json({ error: `Firebase login failed: ${safeErrorMessage(error)}` }, 500, {
-      ...headers,
-      'Set-Cookie': clearCookie(),
-    });
-  }
-  return json(publicTokenPayload(tokens, user, firebase), 200, {
+  return json(publicTokenPayload(tokens, user), 200, {
     ...headers,
     'Set-Cookie': refreshCookie(refreshToken),
   });
@@ -176,85 +157,21 @@ async function fetchUser(accessToken) {
   };
 }
 
-async function createFirebaseLogin(user) {
-  const auth = getAuth(getFirebaseAdminApp());
-  const uid = firebaseUid(user);
-
-  try {
-    await auth.updateUser(uid, userRecord(user));
-  } catch (error) {
-    if (error?.code !== 'auth/user-not-found') throw error;
-    await auth.createUser({ uid, ...userRecord(user) });
-  }
-
-  const customToken = await auth.createCustomToken(uid, {
-    provider: 'google',
-  });
-  return { custom_token: customToken, uid };
-}
-
-function getFirebaseAdminApp() {
-  if (getApps().length) return getApps()[0];
-
-  const serviceAccount = firebaseServiceAccount();
-  return initializeApp({
-    credential: cert(serviceAccount),
-    projectId: serviceAccount.project_id,
-  });
-}
-
-function firebaseServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    const parsed = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    if (parsed.private_key) parsed.private_key = normalizePrivateKey(parsed.private_key);
-    return parsed;
-  }
-
-  const serviceAccount = {
-    project_id: process.env.FIREBASE_ADMIN_PROJECT_ID,
-    client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-    private_key: normalizePrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY || ''),
-  };
-
-  if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
-    throw new Error('Missing Firebase Admin service account env');
-  }
-  return serviceAccount;
-}
-
-function normalizePrivateKey(value) {
-  return String(value || '').replace(/\\n/g, '\n');
-}
-
 function safeErrorMessage(error) {
   return String(error?.message || error || 'Bad Request')
     .replace(/client_secret=[^&\s]+/gi, 'client_secret=REDACTED')
     .slice(0, 240);
 }
 
-function userRecord(user) {
-  return {
-    email: user.email || undefined,
-    emailVerified: Boolean(user.emailVerified),
-    displayName: user.name || undefined,
-    photoURL: user.picture || undefined,
-    disabled: false,
-  };
-}
-
-function firebaseUid(user) {
-  return `google:${user.sub}`.slice(0, 128);
-}
-
-function publicTokenPayload(tokens, user, firebase) {
+function publicTokenPayload(tokens, user) {
   return {
     access_token: tokens.access_token,
     expires_in: tokens.expires_in,
     scope: tokens.scope,
     token_type: tokens.token_type,
     user,
-    firebase_custom_token: firebase.custom_token,
-    firebase_uid: firebase.uid,
+    firebase_custom_token: '',
+    firebase_uid: '',
   };
 }
 
