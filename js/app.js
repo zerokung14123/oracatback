@@ -732,6 +732,10 @@ function loadSettingsForm() {
   if (wtInput) wtInput.value = s.welcome_title || '';
   const wsInput = document.getElementById('settingWelcomeSubtitle');
   if (wsInput) wsInput.value = s.welcome_subtitle || '';
+  const prTitleInput = document.getElementById('settingPricingTitle');
+  if (prTitleInput) prTitleInput.value = s.pricing_title || '';
+  const prSubInput = document.getElementById('settingPricingSubtitle');
+  if (prSubInput) prSubInput.value = s.pricing_subtitle || '';
   const ppInput = document.getElementById('settingPromptPay');
   if (ppInput) ppInput.value = s.promptpay_id || '';
   const ttInput = document.getElementById('settingThunderToken');
@@ -1120,6 +1124,8 @@ async function saveBusinessInfo() {
   // Expose PromptPay and Thunder settings
   s.welcome_title = document.getElementById('settingWelcomeTitle')?.value.trim() || '';
   s.welcome_subtitle = document.getElementById('settingWelcomeSubtitle')?.value.trim() || '';
+  s.pricing_title = document.getElementById('settingPricingTitle')?.value.trim() || '';
+  s.pricing_subtitle = document.getElementById('settingPricingSubtitle')?.value.trim() || '';
   s.promptpay_id = document.getElementById('settingPromptPay')?.value.trim() || '';
   s.thunder_token = document.getElementById('settingThunderToken')?.value.trim() || '';
 
@@ -1134,6 +1140,8 @@ async function saveBusinessInfo() {
       hourRate: s.hourRate,
       welcome_title: s.welcome_title,
       welcome_subtitle: s.welcome_subtitle,
+      pricing_title: s.pricing_title,
+      pricing_subtitle: s.pricing_subtitle,
       promptpay_id: s.promptpay_id,
       thunder_token: s.thunder_token,
     });
@@ -1256,6 +1264,10 @@ function applyCloudSettings(settings) {
   if (wtInput) wtInput.value = appSettingsState.welcome_title || '';
   const wsInput = document.getElementById('settingWelcomeSubtitle');
   if (wsInput) wsInput.value = appSettingsState.welcome_subtitle || '';
+  const prTitleInput = document.getElementById('settingPricingTitle');
+  if (prTitleInput) prTitleInput.value = appSettingsState.pricing_title || '';
+  const prSubInput = document.getElementById('settingPricingSubtitle');
+  if (prSubInput) prSubInput.value = appSettingsState.pricing_subtitle || '';
   const ppInput = document.getElementById('settingPromptPay');
   if (ppInput) ppInput.value = appSettingsState.promptpay_id || '';
   const ttInput = document.getElementById('settingThunderToken');

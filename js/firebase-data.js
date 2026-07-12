@@ -157,6 +157,8 @@ async function loadSettings() {
       thunder_token: s.thunder_token || '',
       welcome_title: s.welcome_title || '',
       welcome_subtitle: s.welcome_subtitle || '',
+      pricing_title: s.pricing_title || '',
+      pricing_subtitle: s.pricing_subtitle || '',
     };
 
     window.applyCloudSettings?.(mapped);
@@ -365,6 +367,8 @@ async function saveSettingsToFirebase(settings) {
   if (settings.welcome_title !== undefined) backendSettings.welcome_title = settings.welcome_title;
   if (settings.welcome_subtitle !== undefined) backendSettings.welcome_subtitle = settings.welcome_subtitle;
   if (settings.packages !== undefined) backendSettings.packages = settings.packages;
+  if (settings.pricing_title !== undefined) backendSettings.pricing_title = settings.pricing_title;
+  if (settings.pricing_subtitle !== undefined) backendSettings.pricing_subtitle = settings.pricing_subtitle;
 
   const res = await fetch(`${API_BASE}/settings`, {
     method: 'PUT',
