@@ -1,0 +1,10 @@
+.env
+.env.*
+node_modules/
+local-server.mjs
+START_LOCAL_SERVER.cmd
+report/
+*.log
+*.tmp
+service-account*.json
+firebase-service-account*.json
