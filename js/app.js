@@ -70,6 +70,7 @@ function setupStaticEventHandlers() {
   bindClick('saveSheetSettingsBtn', () => saveGoogleSheetSettings());
   bindClick('saveBusinessInfoBtn', () => saveBusinessInfo());
   bindClick('addJobTypeBtn', () => addJobTypeSetting());
+  bindClick('addPackageBtn', () => addPackageSetting());
   bindClick('saveJobBtn', () => saveJob());
   bindClick('jobDetailEditBtn', () => editCurrentJobDetail());
   bindClick('jobDetailBookingBtn', () => openCurrentJobDetailBooking());
@@ -740,6 +741,154 @@ function loadSettingsForm() {
   renderJobTypeSelect();
   updateSheetSyncInfo();
   scheduleSheetAccessCheck();
+  renderPackageSettings();
+}
+
+/* ──────────────────────────────────────────────────────────
+   PACKAGES & PRICING
+   ────────────────────────────────────────────────────────── */
+function getPackagesList() {
+  try {
+    return JSON.parse(appSettingsState.packages || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function renderPackageSettings() {
+  const list = document.getElementById('packageSettingsList');
+  if (!list) return;
+
+  const packages = getPackagesList();
+  if (packages.length === 0) {
+    list.innerHTML = '<div class="settings-hint">ไม่มีแพ็กเกจราคาขณะนี้</div>';
+    return;
+  }
+
+  list.innerHTML = packages.map(pkg => `
+    <div class="card" style="margin-bottom: 0; padding: 14px; background: rgba(5,5,5,0.4); border: 1px solid var(--border);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">
+        <span style="font-weight: bold; color: var(--gold-light); font-size: 0.85rem;">แพ็กเกจ: ${appEscHtml(pkg.name)}</span>
+        <button class="action-btn del" type="button" data-pkg-action="delete" data-pkg-id="${appEscAttr(pkg.id)}" style="padding: 4px 8px; font-size: 0.75rem;">ลบ</button>
+      </div>
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <div class="form-group">
+          <label>ชื่อแพ็กเกจ</label>
+          <input type="text" class="form-control" data-pkg-field="name" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.name)}" style="font-size: 0.8rem; padding: 8px;" />
+        </div>
+        <div class="form-group">
+          <label>ราคาเริ่มต้น (บาท)</label>
+          <input type="text" class="form-control" data-pkg-field="price" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.price)}" style="font-size: 0.8rem; padding: 8px;" />
+        </div>
+        <div class="form-group">
+          <label>ป้ายกำกับพิเศษ (Badge)</label>
+          <input type="text" class="form-control" data-pkg-field="badge" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.badge || '')}" style="font-size: 0.8rem; padding: 8px;" />
+        </div>
+        <div class="form-group full-span">
+          <label>รายละเอียด / คุณสมบัติ (บรรทัดละ 1 ข้อ)</label>
+          <textarea class="form-control" data-pkg-field="features" data-pkg-id="${appEscAttr(pkg.id)}" rows="3" style="font-size: 0.8rem; padding: 8px; font-family: monospace;">${appEscHtml((pkg.features || []).join('\n'))}</textarea>
+        </div>
+      </div>
+      <button class="btn-primary" type="button" data-pkg-action="save" data-pkg-id="${appEscAttr(pkg.id)}" style="margin-top: 10px; padding: 6px 12px; font-size: 0.8rem; width: auto; align-self: flex-end;">บันทึกแพ็กเกจนี้</button>
+    </div>
+  `).join('');
+
+  bindPackageActions(list);
+}
+
+function bindPackageActions(list) {
+  list.querySelectorAll('[data-pkg-action]').forEach(button => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.pkgId;
+      const action = button.dataset.pkgAction;
+      const currentPkgs = getPackagesList();
+
+      if (action === 'delete') {
+        if (!confirm('ต้องการลบแพ็กเกจนี้ใช่หรือไม่?')) return;
+        const updated = currentPkgs.filter(p => p.id !== id);
+        await savePackagesState(updated, 'ลบแพ็กเกจเรียบร้อยแล้ว ✓');
+      } else if (action === 'save') {
+        const nameVal = list.querySelector(`[data-pkg-field="name"][data-pkg-id="${id}"]`).value.trim();
+        const priceVal = list.querySelector(`[data-pkg-field="price"][data-pkg-id="${id}"]`).value.trim();
+        const badgeVal = list.querySelector(`[data-pkg-field="badge"][data-pkg-id="${id}"]`).value.trim();
+        const featuresVal = list.querySelector(`[data-pkg-field="features"][data-pkg-id="${id}"]`).value.trim();
+
+        if (!nameVal) {
+          showToast('ชื่อแพ็กเกจห้ามว่าง', 'error');
+          return;
+        }
+
+        const updated = currentPkgs.map(p => {
+          if (p.id === id) {
+            return {
+              id: p.id,
+              name: nameVal,
+              price: priceVal,
+              badge: badgeVal,
+              features: featuresVal.split('\n').map(f => f.trim()).filter(Boolean)
+            };
+          }
+          return p;
+        });
+
+        await savePackagesState(updated, 'บันทึกแก้ไขแพ็กเกจเรียบร้อย ✓');
+      }
+    });
+  });
+}
+
+async function addPackageSetting() {
+  const nameEl = document.getElementById('newPkgName');
+  const priceEl = document.getElementById('newPkgPrice');
+  const badgeEl = document.getElementById('newPkgBadge');
+  const featuresEl = document.getElementById('newPkgFeatures');
+
+  const name = nameEl?.value.trim();
+  const price = priceEl?.value.trim() || '0';
+  const badge = badgeEl?.value.trim() || '';
+  const featuresStr = featuresEl?.value.trim() || '';
+
+  if (!name) {
+    showToast('กรุณากรอกชื่อแพ็กเกจ', 'error');
+    return;
+  }
+
+  const currentPkgs = getPackagesList();
+  const newId = 'pkg_' + Date.now();
+  const features = featuresStr.split('\n').map(f => f.trim()).filter(Boolean);
+
+  const updated = [...currentPkgs, { id: newId, name, price, badge, features }];
+
+  const success = await savePackagesState(updated, 'เพิ่มแพ็กเกจเรียบร้อย ✓');
+  if (success) {
+    if (nameEl) nameEl.value = '';
+    if (priceEl) priceEl.value = '';
+    if (badgeEl) badgeEl.value = '';
+    if (featuresEl) featuresEl.value = '';
+  }
+}
+
+async function savePackagesState(updatedPackages, successMessage) {
+  if (!window.firebaseData?.isReady?.()) {
+    showToast('กรุณา Login ก่อนบันทึกการตั้งค่า', 'error');
+    return false;
+  }
+
+  const previous = appSettingsState.packages;
+  const packagesJson = JSON.stringify(updatedPackages);
+  setSettingsState({ packages: packagesJson });
+  renderPackageSettings();
+
+  try {
+    await window.firebaseData.saveSettings({ packages: packagesJson });
+    showToast(successMessage, 'success');
+    return true;
+  } catch (e) {
+    setSettingsState({ packages: previous });
+    renderPackageSettings();
+    showToast('บันทึกแพ็กเกจล้มเหลว: ' + e.message, 'error');
+    return false;
+  }
 }
 
 function activeJobTypes(selectedType = '') {
@@ -1118,6 +1267,7 @@ function applyCloudSettings(settings) {
   updateSidebarUserProfile();
   renderQueueTable();
   updateDashboard();
+  renderPackageSettings();
   if (document.getElementById('page-revenue')?.classList.contains('active')) renderRevenue();
   if (document.getElementById('page-documents')?.classList.contains('active')) refreshBookingDocumentJobs();
   routeInitialLanding();

@@ -542,6 +542,37 @@
         </div>
 
         <div class="card">
+          <div class="card-header"><h3>จัดการแพ็กเกจ & ราคา (Packages & Pricing)</h3></div>
+          <div class="settings-hint">แก้ไขหรือเพิ่มแพ็กเกจราคาสำหรับแสดงบนหน้าเว็บหลักของลูกค้า</div>
+          <div class="job-type-settings-list" id="packageSettingsList" style="display: flex; flex-direction: column; gap: 16px; margin-top: 14px;">
+            <!-- Rendered packages will go here -->
+          </div>
+          
+          <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--gold-light); margin-bottom: 12px;">+ เพิ่มแพ็กเกจใหม่</h4>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+              <div class="form-group">
+                <label>ชื่อแพ็กเกจ *</label>
+                <input type="text" class="form-control" id="newPkgName" placeholder="เช่น พอร์ตเทรตกลุ่ม" />
+              </div>
+              <div class="form-group">
+                <label>ราคาเริ่มต้น (บาท) *</label>
+                <input type="text" class="form-control" id="newPkgPrice" placeholder="เช่น 5,000" />
+              </div>
+              <div class="form-group">
+                <label>ป้ายกำกับพิเศษ (Badge)</label>
+                <input type="text" class="form-control" id="newPkgBadge" placeholder="เช่น ยอดฮิต, มาใหม่" />
+              </div>
+              <div class="form-group full-span">
+                <label>คุณสมบัติแพ็กเกจ (บรรทัดละ 1 ข้อกำหนด)</label>
+                <textarea class="form-control" id="newPkgFeatures" rows="3" placeholder="ช่างภาพ 1 ท่าน&#10;ระยะเวลา 3 ชั่วโมง&#10;รีทัชรูปพิเศษ 15 รูป"></textarea>
+              </div>
+            </div>
+            <button class="btn-primary" type="button" id="addPackageBtn" style="margin-top: 12px;">เพิ่มแพ็กเกจ</button>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-header"><h3>แก้ไขประเภทงาน</h3></div>
           <div class="settings-hint">ใช้สำหรับเพิ่ม/ลดตัวเลือกใน dropdown ประเภทงาน และกำหนดจำนวนวันส่งงาน ระบบจะเตือนบน Dashboard หากยังไม่เปลี่ยนสถานะเป็น Done ภายในกำหนด</div>
           <div class="job-type-settings-list" id="jobTypeSettingsList"></div>

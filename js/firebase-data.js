@@ -151,6 +151,7 @@ async function loadSettings() {
       })),
       lastSheetSync: null,
       taxPaidReminders: [],
+      packages: s.packages || '[]',
       // Extra values to fill settings form inputs
       promptpay_id: s.promptpay_id || '',
       thunder_token: s.thunder_token || '',
@@ -363,6 +364,7 @@ async function saveSettingsToFirebase(settings) {
   if (settings.thunder_token !== undefined) backendSettings.thunder_token = settings.thunder_token;
   if (settings.welcome_title !== undefined) backendSettings.welcome_title = settings.welcome_title;
   if (settings.welcome_subtitle !== undefined) backendSettings.welcome_subtitle = settings.welcome_subtitle;
+  if (settings.packages !== undefined) backendSettings.packages = settings.packages;
 
   const res = await fetch(`${API_BASE}/settings`, {
     method: 'PUT',
