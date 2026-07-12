@@ -472,116 +472,156 @@
 
     <!-- ===== SETTINGS PAGE ===== -->
     <section class="page" id="page-settings">
-      <div class="settings-layout">
-        <div class="card">
-          <div class="card-header"><h3>Google Sheets</h3></div>
-          <div class="form-group">
-            <label>Google Sheet ID</label>
-            <input type="text" class="form-control" id="settingSheetId" placeholder="ใส่ Sheet ID หรือ URL ของ Google Sheet" />
-          </div>
-          <div class="settings-hint" id="sheetSettingInfo">ยังไม่ได้ตั้งค่า Google Sheet ID</div>
-          <div class="settings-hint" id="sheetSyncInfo">ยังไม่เคย Sync ไป Google Sheets</div>
-          <div class="settings-action-row">
-            <button class="btn-primary" type="button" id="saveSheetSettingsBtn">บันทึก Google Sheet ID</button>
-            <button class="btn-secondary" type="button" id="createBookingSheetBtn">สร้าง Booking Sheet ใหม่</button>
-          </div>
-          <div class="settings-hint sheet-create-info" id="sheetCreateInfo">ผู้ใช้งานใหม่ต้องบันทึก Google Sheet ID หรือสร้าง Booking Sheet ก่อนเริ่มใช้งาน</div>
-        </div>
+      <div class="settings-container">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+          <button class="settings-tab-btn active" type="button" data-settings-tab="business-info">
+            <span class="tab-icon">💼</span>
+            <span class="tab-label">ข้อมูลธุรกิจ</span>
+          </button>
+          <button class="settings-tab-btn" type="button" data-settings-tab="packages-pricing">
+            <span class="tab-icon">🏷️</span>
+            <span class="tab-label">แพ็กเกจ & ราคา</span>
+          </button>
+          <button class="settings-tab-btn" type="button" data-settings-tab="job-types">
+            <span class="tab-icon">📅</span>
+            <span class="tab-label">ประเภทงาน & วันส่งงาน</span>
+          </button>
+          <button class="settings-tab-btn" type="button" data-settings-tab="google-sheets">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">Google Sheets</span>
+          </button>
+        </aside>
 
-        <div class="card">
-          <div class="card-header"><h3>ข้อมูลธุรกิจ</h3></div>
-          <div class="form-group">
-            <label>ชื่อสตูดิโอ / ช่างภาพ</label>
-            <input type="text" class="form-control" id="settingName" placeholder="Oracat Studio" />
+        <!-- Content Area -->
+        <div class="settings-content-area">
+          <!-- Pane 1: Business Info -->
+          <div class="settings-pane active" id="settings-pane-business-info">
+            <div class="card" style="margin-top: 0;">
+              <div class="card-header"><h3>ข้อมูลธุรกิจ</h3></div>
+              <div class="form-group">
+                <label>ชื่อสตูดิโอ / ช่างภาพ</label>
+                <input type="text" class="form-control" id="settingName" placeholder="Oracat Studio" />
+              </div>
+              <div class="form-group">
+                <label>เบอร์โทร</label>
+                <input type="text" class="form-control" id="settingPhone" placeholder="093-8106998" />
+              </div>
+              <div class="form-group">
+                <label>อีเมล</label>
+                <input type="email" class="form-control" id="settingEmail" placeholder="you@email.com" />
+              </div>
+              <div class="form-group">
+                <label>ลิงก์ Facebook</label>
+                <input type="text" class="form-control" id="settingFacebook" placeholder="www.facebook.com/yourpage" />
+              </div>
+              <div class="form-group">
+                <label>อัตราค่าบริการต่อชั่วโมง (บาท)</label>
+                <input type="number" class="form-control" id="settingHourRate" placeholder="1500" />
+              </div>
+              <div class="form-group">
+                <label>ข้อความต้อนรับหัวเรื่องใหญ่ (แสดงหน้าแรกลูกค้า)</label>
+                <input type="text" class="form-control" id="settingWelcomeTitle" placeholder="Oracat Studio ช่างภาพพอร์ตเทรต" />
+              </div>
+              <div class="form-group">
+                <label>ข้อความต้อนรับคำบรรยาย (แสดงหน้าแรกลูกค้า)</label>
+                <input type="text" class="form-control" id="settingWelcomeSubtitle" placeholder="บันทึกความทรงจำที่ดีที่สุดของคุณด้วยภาพถ่ายคุณภาพสูง" />
+              </div>
+              <div class="form-group">
+                <label>หัวเรื่องหน้าแพ็กเกจราคา (แสดงบนหน้าเว็บหลัก)</label>
+                <input type="text" class="form-control" id="settingPricingTitle" placeholder="แพ็กเกจ & ราคา (Pricing)" />
+              </div>
+              <div class="form-group">
+                <label>คำอธิบายหน้าแพ็กเกจราคา (แสดงบนหน้าเว็บหลัก)</label>
+                <input type="text" class="form-control" id="settingPricingSubtitle" placeholder="เลือกสรรแพ็กเกจถ่ายภาพที่ดีที่สุดสำหรับเวลาสำคัญของคุณ..." />
+              </div>
+              <div class="form-group">
+                <label>หมายเลขพร้อมเพย์ (PromptPay ID) สำหรับรับเงินมัดจำ</label>
+                <input type="text" class="form-control" id="settingPromptPay" placeholder="เช่น 0891234567 หรือเลขประจำตัวผู้เสียภาษี" />
+              </div>
+              <div class="form-group">
+                <label>Thunder Solution API Token (ยืนยันสลิปอัตโนมัติ)</label>
+                <input type="text" class="form-control" id="settingThunderToken" placeholder="วาง API Token จาก thunder.in.th (หากเว้นว่างจะทำงานในโหมด Sandbox ทดสอบเสร็จสิ้นอัตโนมัติ)" />
+              </div>
+              <div class="form-group">
+                <label>เงื่อนไขและข้อกำหนดการจอง</label>
+                <textarea class="form-control" id="settingBookingTerms" rows="3" placeholder="สอบถามรายละเอียดเพิ่มเติม Inbox ได้เลยจ้า"></textarea>
+                <div class="field-help">ถ้าไม่กรอก ระบบจะใช้ค่าเริ่มต้นนี้ในส่วนเงื่อนไขและข้อกำหนด</div>
+              </div>
+              <button class="btn-primary" type="button" id="saveBusinessInfoBtn" style="margin-top: 14px;">บันทึกข้อมูลธุรกิจ</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label>เบอร์โทร</label>
-            <input type="text" class="form-control" id="settingPhone" placeholder="093-8106998" />
-          </div>
-          <div class="form-group">
-            <label>อีเมล</label>
-            <input type="email" class="form-control" id="settingEmail" placeholder="you@email.com" />
-          </div>
-          <div class="form-group">
-            <label>ลิงก์ Facebook</label>
-            <input type="text" class="form-control" id="settingFacebook" placeholder="www.facebook.com/yourpage" />
-          </div>
-          <div class="form-group">
-            <label>อัตราค่าบริการต่อชั่วโมง (บาท)</label>
-            <input type="number" class="form-control" id="settingHourRate" placeholder="1500" />
-          </div>
-          <div class="form-group">
-            <label>ข้อความต้อนรับหัวเรื่องใหญ่ (แสดงหน้าแรกลูกค้า)</label>
-            <input type="text" class="form-control" id="settingWelcomeTitle" placeholder="Oracat Studio ช่างภาพพอร์ตเทรต" />
-          </div>
-          <div class="form-group">
-            <label>ข้อความต้อนรับคำบรรยาย (แสดงหน้าแรกลูกค้า)</label>
-            <input type="text" class="form-control" id="settingWelcomeSubtitle" placeholder="บันทึกความทรงจำที่ดีที่สุดของคุณด้วยภาพถ่ายคุณภาพสูง" />
-          </div>
-          <div class="form-group">
-            <label>หัวเรื่องหน้าแพ็กเกจราคา (แสดงบนหน้าเว็บหลัก)</label>
-            <input type="text" class="form-control" id="settingPricingTitle" placeholder="แพ็กเกจ & ราคา (Pricing)" />
-          </div>
-          <div class="form-group">
-            <label>คำอธิบายหน้าแพ็กเกจราคา (แสดงบนหน้าเว็บหลัก)</label>
-            <input type="text" class="form-control" id="settingPricingSubtitle" placeholder="เลือกสรรแพ็กเกจถ่ายภาพที่ดีที่สุดสำหรับเวลาสำคัญของคุณ..." />
-          </div>
-          <div class="form-group">
-            <label>หมายเลขพร้อมเพย์ (PromptPay ID) สำหรับรับเงินมัดจำ</label>
-            <input type="text" class="form-control" id="settingPromptPay" placeholder="เช่น 0891234567 หรือเลขประจำตัวผู้เสียภาษี" />
-          </div>
-          <div class="form-group">
-            <label>Thunder Solution API Token (ยืนยันสลิปอัตโนมัติ)</label>
-            <input type="text" class="form-control" id="settingThunderToken" placeholder="วาง API Token จาก thunder.in.th (หากเว้นว่างจะทำงานในโหมด Sandbox ทดสอบเสร็จสิ้นอัตโนมัติ)" />
-          </div>
-          <div class="form-group">
-            <label>เงื่อนไขและข้อกำหนดการจอง</label>
-            <textarea class="form-control" id="settingBookingTerms" rows="3" placeholder="สอบถามรายละเอียดเพิ่มเติม Inbox ได้เลยจ้า"></textarea>
-            <div class="field-help">ถ้าไม่กรอก ระบบจะใช้ค่าเริ่มต้นนี้ในส่วนเงื่อนไขและข้อกำหนด</div>
-          </div>
-          <button class="btn-primary" type="button" id="saveBusinessInfoBtn">บันทึก</button>
-        </div>
 
-        <div class="card">
-          <div class="card-header"><h3>จัดการแพ็กเกจ & ราคา (Packages & Pricing)</h3></div>
-          <div class="settings-hint">แก้ไขหรือเพิ่มแพ็กเกจราคาสำหรับแสดงบนหน้าเว็บหลักของลูกค้า</div>
-          <div class="job-type-settings-list" id="packageSettingsList" style="display: flex; flex-direction: column; gap: 16px; margin-top: 14px;">
-            <!-- Rendered packages will go here -->
-          </div>
-          
-          <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px;">
-            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--gold-light); margin-bottom: 12px;">+ เพิ่มแพ็กเกจใหม่</h4>
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-              <div class="form-group">
-                <label>ชื่อแพ็กเกจ *</label>
-                <input type="text" class="form-control" id="newPkgName" placeholder="เช่น พอร์ตเทรตกลุ่ม" />
+          <!-- Pane 2: Packages & Pricing -->
+          <div class="settings-pane" id="settings-pane-packages-pricing">
+            <div class="card" style="margin-top: 0;">
+              <div class="card-header"><h3>จัดการแพ็กเกจ & ราคา (Packages & Pricing)</h3></div>
+              <div class="settings-hint">แก้ไขหรือเพิ่มแพ็กเกจราคาสำหรับแสดงบนหน้าเว็บหลักของลูกค้า</div>
+              
+              <div class="job-type-settings-list" id="packageSettingsList" style="display: flex; flex-direction: column; gap: 16px; margin-top: 14px;">
+                <!-- Rendered packages will go here -->
               </div>
-              <div class="form-group">
-                <label>ราคาเริ่มต้น (บาท) *</label>
-                <input type="text" class="form-control" id="newPkgPrice" placeholder="เช่น 5,000" />
-              </div>
-              <div class="form-group">
-                <label>ป้ายกำกับพิเศษ (Badge)</label>
-                <input type="text" class="form-control" id="newPkgBadge" placeholder="เช่น ยอดฮิต, มาใหม่" />
-              </div>
-              <div class="form-group full-span">
-                <label>คุณสมบัติแพ็กเกจ (บรรทัดละ 1 ข้อกำหนด)</label>
-                <textarea class="form-control" id="newPkgFeatures" rows="3" placeholder="ช่างภาพ 1 ท่าน&#10;ระยะเวลา 3 ชั่วโมง&#10;รีทัชรูปพิเศษ 15 รูป"></textarea>
+              
+              <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--gold-light); margin-bottom: 14px;">+ เพิ่มแพ็กเกจใหม่</h4>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                  <div class="form-group">
+                    <label>ชื่อแพ็กเกจ *</label>
+                    <input type="text" class="form-control" id="newPkgName" placeholder="เช่น พอร์ตเทรตกลุ่ม" />
+                  </div>
+                  <div class="form-group">
+                    <label>ราคาเริ่มต้น (บาท) *</label>
+                    <input type="text" class="form-control" id="newPkgPrice" placeholder="เช่น 5,000" />
+                  </div>
+                  <div class="form-group">
+                    <label>ป้ายกำกับพิเศษ (Badge)</label>
+                    <input type="text" class="form-control" id="newPkgBadge" placeholder="เช่น ยอดฮิต, มาใหม่" />
+                  </div>
+                  <div class="form-group full-span">
+                    <label>คุณสมบัติแพ็กเกจ (บรรทัดละ 1 ข้อกำหนด)</label>
+                    <textarea class="form-control" id="newPkgFeatures" rows="3" placeholder="ช่างภาพ 1 ท่าน&#10;ระยะเวลา 3 ชั่วโมง&#10;รีทัชรูปพิเศษ 15 รูป"></textarea>
+                  </div>
+                </div>
+                <button class="btn-primary" type="button" id="addPackageBtn" style="margin-top: 14px;">เพิ่มแพ็กเกจ</button>
               </div>
             </div>
-            <button class="btn-primary" type="button" id="addPackageBtn" style="margin-top: 12px;">เพิ่มแพ็กเกจ</button>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header"><h3>แก้ไขประเภทงาน</h3></div>
-          <div class="settings-hint">ใช้สำหรับเพิ่ม/ลดตัวเลือกใน dropdown ประเภทงาน และกำหนดจำนวนวันส่งงาน ระบบจะเตือนบน Dashboard หากยังไม่เปลี่ยนสถานะเป็น Done ภายในกำหนด</div>
-          <div class="job-type-settings-list" id="jobTypeSettingsList"></div>
-          <div class="form-group">
-            <label>เพิ่มประเภทงานใหม่</label>
-            <input type="text" class="form-control" id="newJobTypeLabel" placeholder="เช่น Pre-wedding, งานบริษัท" />
+          <!-- Pane 3: Job Types & Delivery -->
+          <div class="settings-pane" id="settings-pane-job-types">
+            <div class="card" style="margin-top: 0;">
+              <div class="card-header"><h3>แก้ไขประเภทงาน</h3></div>
+              <div class="settings-hint">ใช้สำหรับเพิ่ม/ลดตัวเลือกใน dropdown ประเภทงาน และกำหนดจำนวนวันส่งงาน ระบบจะเตือนบน Dashboard หากยังไม่เปลี่ยนสถานะเป็น Done ภายในกำหนด</div>
+              
+              <div class="job-type-settings-list" id="jobTypeSettingsList" style="margin-top: 14px;"></div>
+              
+              <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <div class="form-group">
+                  <label>เพิ่มประเภทงานใหม่</label>
+                  <input type="text" class="form-control" id="newJobTypeLabel" placeholder="เช่น Pre-wedding, งานบริษัท" />
+                </div>
+                <button class="btn-primary" type="button" id="addJobTypeBtn" style="margin-top: 8px;">เพิ่มประเภทงาน</button>
+              </div>
+            </div>
           </div>
-          <button class="btn-primary" type="button" id="addJobTypeBtn">เพิ่มประเภทงาน</button>
+
+          <!-- Pane 4: Google Sheets -->
+          <div class="settings-pane" id="settings-pane-google-sheets">
+            <div class="card" style="margin-top: 0;">
+              <div class="card-header"><h3>Google Sheets (ระบบสำรอง)</h3></div>
+              <div class="form-group">
+                <label>Google Sheet ID</label>
+                <input type="text" class="form-control" id="settingSheetId" placeholder="ใส่ Sheet ID หรือ URL ของ Google Sheet" />
+              </div>
+              <div class="settings-hint" id="sheetSettingInfo">ยังไม่ได้ตั้งค่า Google Sheet ID</div>
+              <div class="settings-hint" id="sheetSyncInfo">ยังไม่เคย Sync ไป Google Sheets</div>
+              <div class="settings-action-row" style="margin-top: 14px;">
+                <button class="btn-primary" type="button" id="saveSheetSettingsBtn">บันทึก Google Sheet ID</button>
+                <button class="btn-secondary" type="button" id="createBookingSheetBtn">สร้าง Booking Sheet ใหม่</button>
+              </div>
+              <div class="settings-hint sheet-create-info" id="sheetCreateInfo" style="margin-top: 10px;">ระบบใช้ Supabase เป็นฐานข้อมูลหลัก ไม่ต้องตั้งค่า Google Sheet</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

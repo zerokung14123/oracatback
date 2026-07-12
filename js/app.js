@@ -1,10 +1,10 @@
-﻿// ============================================================
-//  app.js â€” Main Application (routing, settings, UI helpers)
+// ============================================================
+//  app.js — Main Application (routing, settings, UI helpers)
 // ============================================================
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    INIT
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   await window.loadV3RuntimeConfig?.();
   updateLoginGate(null, { pending: true });
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (token && wasLoggedIn && !isExpired) {
     try {
-      const apiBase = ((window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api'));
+      const apiBase = (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api');
       const settingsRes = await fetch(`${apiBase}/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -46,14 +46,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         // Token expired or invalid
         localStorage.removeItem('manager_token');
-        updateLoginGate(null, { message: 'à¹€à¸‹à¸ªà¸Šà¸±à¸™à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸ à¸à¸£à¸¸à¸“à¸²à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¹ƒà¸«à¸¡à¹ˆ' });
+        updateLoginGate(null, { message: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' });
       }
     } catch (e) {
-      updateLoginGate(null, { message: 'à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ server à¹„à¸”à¹‰' });
+      updateLoginGate(null, { message: 'ไม่สามารถเชื่อมต่อ server ได้' });
     }
   } else {
     if (token) localStorage.removeItem('manager_token');
-    updateLoginGate(null, { message: 'à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹à¸¥à¸°à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹€à¸žà¸·à¹ˆà¸­à¹€à¸‚à¹‰à¸²à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ Oracat Manager' });
+    updateLoginGate(null, { message: 'กรุณาระบุชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าใช้งาน Oracat Manager' });
   }
 
   loadGoogleAPIs?.();
@@ -86,6 +86,22 @@ function setupStaticEventHandlers() {
   bindClick('jobDetailBookingBtn', () => openCurrentJobDetailBooking());
   bindClick('downloadCurrentBookingBtn', () => downloadCurrentBookingDocument());
   bindClick('themeToggleBtn', () => toggleTheme());
+
+  // Settings Tabs switching
+  document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.dataset.settingsTab;
+      
+      // Update active button
+      document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update active pane
+      document.querySelectorAll('.settings-pane').forEach(p => p.classList.remove('active'));
+      const targetPane = document.getElementById(`settings-pane-${targetTab}`);
+      if (targetPane) targetPane.classList.add('active');
+    });
+  });
 
   bindChange('chartYear', () => renderChart());
   bindChange('chartType', () => renderChart());
@@ -138,18 +154,18 @@ function setupStaticEventHandlers() {
       const username = document.getElementById('loginUsername').value.trim();
       const password = document.getElementById('loginPassword').value;
       
-      setLoginGateBusy(true, 'à¸à¸³à¸¥à¸±à¸‡à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š...');
-      setLoginGateStatus('à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹à¸¥à¸°à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™...');
+      setLoginGateBusy(true, 'กำลังเข้าสู่ระบบ...');
+      setLoginGateStatus('กำลังตรวจสอบชื่อผู้ใช้งานและรหัสผ่าน...');
       
       try {
-        const apiBase = ((window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api'));
+        const apiBase = (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api');
         const res = await fetch(`${apiBase}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§');
+        if (!res.ok) throw new Error(data.error || 'เข้าสู่ระบบล้มเหลว');
         
         localStorage.setItem('manager_token', data.token);
         localStorage.setItem('oracat_logged_in', 'true');
@@ -167,10 +183,10 @@ function setupStaticEventHandlers() {
 
         const user = { email: data.user?.username || username, displayName: data.user?.username || username };
         updateLoginGate(user);
-        showToast('à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸ªà¸³à¹€à¸£à¹‡à¸ˆ à¸¢à¸´à¸™à¸”à¸µà¸•à¹‰à¸­à¸™à¸£à¸±à¸š!', 'success');
+        showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ!', 'success');
       } catch (err) {
-        updateLoginGate(null, { message: err.message || 'à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§' });
-        showToast(err.message || 'à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§', 'error');
+        updateLoginGate(null, { message: err.message || 'เข้าสู่ระบบล้มเหลว' });
+        showToast(err.message || 'เข้าสู่ระบบล้มเหลว', 'error');
       }
     });
   }
@@ -190,14 +206,14 @@ function bindChange(id, handler) {
 
 const TEST_NOTICE_SESSION_PREFIX = 'oracatManagerTestNoticeSeen:';
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    LOGIN GATE
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 function setLoginGateBusy(isBusy, label = '') {
   const btn = document.getElementById('loginGoogleBtn');
   const labelEl = document.getElementById('loginGoogleLabel');
   if (btn) btn.disabled = Boolean(isBusy);
-  if (labelEl) labelEl.textContent = label || 'à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¸”à¹‰à¸§à¸¢ Google';
+  if (labelEl) labelEl.textContent = label || 'เข้าสู่ระบบด้วย Google';
 }
 
 function setLoginGateStatus(message) {
@@ -211,8 +227,8 @@ function updateLoginGate(user = null, options = {}) {
   if (options.pending) {
     document.body.classList.add('auth-pending');
     document.body.classList.remove('auth-ready', 'auth-locked');
-    setLoginGateBusy(true, 'à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...');
-    setLoginGateStatus('à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸ªà¸–à¸²à¸™à¸°à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š...');
+    setLoginGateBusy(true, 'กำลังตรวจสอบ...');
+    setLoginGateStatus('กำลังตรวจสอบสถานะการเข้าสู่ระบบ...');
     return;
   }
 
@@ -220,7 +236,7 @@ function updateLoginGate(user = null, options = {}) {
     document.body.classList.add('auth-ready');
     document.body.classList.remove('auth-pending', 'auth-locked');
     setLoginGateBusy(false);
-    setLoginGateStatus(`à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¹à¸¥à¹‰à¸§: ${user.email || user.displayName || 'Google account'}`);
+    setLoginGateStatus(`เข้าสู่ระบบแล้ว: ${user.email || user.displayName || 'Google account'}`);
     showTestNoticeAfterLogin(user);
     window.setTimeout(() => updateSheetSetupUI(), 0);
     return;
@@ -230,25 +246,25 @@ function updateLoginGate(user = null, options = {}) {
   document.body.classList.add('auth-locked');
   document.body.classList.remove('auth-pending', 'auth-ready');
   setLoginGateBusy(false);
-  setLoginGateStatus(options.message || 'à¸à¸£à¸¸à¸“à¸²à¸£à¸°à¸šà¸¸à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹à¸¥à¸°à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹€à¸žà¸·à¹ˆà¸­à¹€à¸‚à¹‰à¸²à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ Oracat Manager');
+  setLoginGateStatus(options.message || 'กรุณาระบุชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าใช้งาน Oracat Manager');
 }
 
 async function handleLoginGateAuth() {
   if (!window.googleOAuthV3?.login) {
-    setLoginGateStatus('Google OAuth à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ à¸¥à¸­à¸‡à¸£à¸µà¹€à¸Ÿà¸£à¸Šà¸«à¸™à¹‰à¸²à¹€à¸§à¹‡à¸šà¸­à¸µà¸à¸„à¸£à¸±à¹‰à¸‡');
-    showToast?.('Google OAuth à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™', 'error');
+    setLoginGateStatus('Google OAuth ยังไม่พร้อมใช้งาน ลองรีเฟรชหน้าเว็บอีกครั้ง');
+    showToast?.('Google OAuth ยังไม่พร้อมใช้งาน', 'error');
     return;
   }
 
-  setLoginGateBusy(true, 'à¸à¸³à¸¥à¸±à¸‡à¹€à¸›à¸´à¸” Google...');
-  setLoginGateStatus('à¸à¸³à¸¥à¸±à¸‡à¹€à¸›à¸´à¸” Google Popup à¹€à¸žà¸·à¹ˆà¸­à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š');
+  setLoginGateBusy(true, 'กำลังเปิด Google...');
+  setLoginGateStatus('กำลังเปิด Google Popup เพื่อเข้าสู่ระบบ');
   const ok = await window.googleOAuthV3.login();
   if (!ok) {
     updateLoginGate(null);
     return;
   }
 
-  setLoginGateStatus('à¸£à¸­à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™à¸ˆà¸²à¸ Google...');
+  setLoginGateStatus('รอการยืนยันจาก Google...');
   window.setTimeout(() => {
     if (!window.firebaseData?.currentUser?.()) {
       const message = getGoogleLoginTimeoutMessage();
@@ -264,9 +280,9 @@ function getGoogleLoginTimeoutMessage() {
   const runtimeError = window.runtimeConfigState?.error;
   const clientId = String(window.CONFIG?.GOOGLE_OAUTH_CLIENT_ID || '').trim();
   if (lastLoginError) return lastLoginError;
-  if (runtimeError) return `Google Login à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ${runtimeError}`;
-  if (!clientId) return 'Google Login à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: à¹„à¸¡à¹ˆà¸žà¸š GOOGLE_OAUTH_CLIENT_ID à¸ˆà¸²à¸ backend config';
-  return `Google Login à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: à¸•à¸£à¸§à¸ˆ Firebase Authentication, Render logs à¹à¸¥à¸° OAuth origin ${origin}`;
+  if (runtimeError) return `Google Login ยังไม่สำเร็จ: ${runtimeError}`;
+  if (!clientId) return 'Google Login ยังไม่สำเร็จ: ไม่พบ GOOGLE_OAUTH_CLIENT_ID จาก backend config';
+  return `Google Login ยังไม่สำเร็จ: ตรวจ Firebase Authentication, Render logs และ OAuth origin ${origin}`;
 }
 
 function testNoticeSessionKey(user) {
@@ -306,7 +322,7 @@ function startInactivityCheck() {
       const lastActive = Number(localStorage.getItem('oracat_last_activity') || 0);
       // Extend timeout to 7 days for private photographer dashboard
       if (lastActive && (Date.now() - lastActive > 7 * 24 * 60 * 60 * 1000)) {
-        showToast?.('à¹€à¸‹à¸ªà¸Šà¸±à¸™à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸à¸«à¸¥à¸±à¸‡à¸ˆà¸²à¸à¹„à¸¡à¹ˆà¸¡à¸µà¸à¸²à¸£à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹€à¸›à¹‡à¸™à¹€à¸§à¸¥à¸² 7 à¸§à¸±à¸™', 'warning');
+        showToast?.('เซสชันหมดอายุหลังจากไม่มีการใช้งานเป็นเวลา 7 วัน', 'warning');
         localStorage.removeItem('manager_token');
         localStorage.removeItem('oracat_logged_in');
         updateLoginGate(null);
@@ -315,9 +331,9 @@ function startInactivityCheck() {
   }, 30000);
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    THEME MANAGER
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 function initTheme() {
   const savedTheme = localStorage.getItem('oracatManagerTheme') === 'light' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -336,15 +352,15 @@ function toggleTheme() {
 function updateThemeToggle(theme) {
   const button = document.getElementById('themeToggleBtn');
   if (!button) return;
-  const nextLabel = theme === 'light' ? 'à¸¡à¸·à¸”' : 'à¸ªà¸§à¹ˆà¸²à¸‡';
-  button.textContent = `à¸˜à¸µà¸¡${nextLabel}`;
-  button.title = `à¸ªà¸¥à¸±à¸šà¹€à¸›à¹‡à¸™à¸˜à¸µà¸¡${nextLabel}`;
-  button.setAttribute('aria-label', `à¸ªà¸¥à¸±à¸šà¹€à¸›à¹‡à¸™à¸˜à¸µà¸¡${nextLabel}`);
+  const nextLabel = theme === 'light' ? 'มืด' : 'สว่าง';
+  button.textContent = `ธีม${nextLabel}`;
+  button.title = `สลับเป็นธีม${nextLabel}`;
+  button.setAttribute('aria-label', `สลับเป็นธีม${nextLabel}`);
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    LOGIN ALERT MANAGER
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 let loginAlertShown = false;
 function checkLoginAlerts(alerts) {
   if (loginAlertShown) return;
@@ -354,11 +370,11 @@ function checkLoginAlerts(alerts) {
       <div class="delivery-alert-item ${item.isOverdue ? 'overdue' : item.daysLeft === 0 ? 'due-today' : 'due-soon'}">
         <div class="delivery-alert-main">
           <strong>${appEscHtml(item.client)}</strong>
-          <span>${appEscHtml(item.typeLabel)} â€¢ à¸‡à¸²à¸™à¸§à¸±à¸™à¸—à¸µà¹ˆ ${appEscHtml(formatDate(item.jobDateText))}</span>
+          <span>${appEscHtml(item.typeLabel)} • งานวันที่ ${appEscHtml(formatDate(item.jobDateText))}</span>
         </div>
         <div class="delivery-alert-meta">
           <b>${appEscHtml(item.statusText)}</b>
-          <small>à¸à¸³à¸«à¸™à¸”à¸ªà¹ˆà¸‡ ${appEscHtml(formatDate(item.dueDateText))}</small>
+          <small>กำหนดส่ง ${appEscHtml(formatDate(item.dueDateText))}</small>
         </div>
       </div>
     `).join('');
@@ -374,18 +390,18 @@ function closeLoginAlertModal() {
   document.getElementById('loginAlertModal')?.classList.remove('open');
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    PAGE ROUTING
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 const PAGE_TITLES = {
   dashboard: 'Dashboard',
-  bookings: 'à¸„à¸³à¸‚à¸­à¸ˆà¸­à¸‡à¸„à¸´à¸§à¸‡à¸²à¸™',
-  queue: 'à¸„à¸´à¸§à¸‡à¸²à¸™',
-  gallery: 'à¸ˆà¸±à¸”à¸à¸²à¸£à¸„à¸¥à¸±à¸‡à¸£à¸¹à¸›à¸ à¸²à¸žà¸œà¸¥à¸‡à¸²à¸™',
-  revenue: 'à¸£à¸²à¸¢à¸£à¸±à¸š',
-  tax: 'à¹‚à¸›à¸£à¹à¸à¸£à¸¡à¸„à¸³à¸™à¸§à¸“à¸ à¸²à¸©à¸µ',
-  documents: 'à¹€à¸­à¸à¸ªà¸²à¸£',
-  settings: 'à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²',
+  bookings: 'คำขอจองคิวงาน',
+  queue: 'คิวงาน',
+  gallery: 'จัดการคลังรูปภาพผลงาน',
+  revenue: 'รายรับ',
+  tax: 'โปรแกรมคำนวณภาษี',
+  documents: 'เอกสาร',
+  settings: 'ตั้งค่า',
 };
 
 let initialLandingResolved = false;
@@ -401,7 +417,7 @@ function showPage(page, options = {}) {
   if (isSheetSetupRequired() && page !== 'settings') {
     target = 'settings';
     if (!options.quietGate) {
-      showToast('à¸à¸£à¸¸à¸“à¸²à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² Google Sheet à¸à¹ˆà¸­à¸™à¹€à¸£à¸´à¹ˆà¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™', 'error');
+      showToast('กรุณาตั้งค่า Google Sheet ก่อนเริ่มใช้งาน', 'error');
     }
   }
 
@@ -432,16 +448,16 @@ function showPage(page, options = {}) {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    SIDEBAR TOGGLE (MOBILE)
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    TODAY DATE
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 function setTodayDate() {
   const d = new Date();
   const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -465,9 +481,9 @@ function setupPickerIconClicks() {
   });
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    SETTINGS
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 const APP_LOCAL_DATA_KEYS = [
   'jobs',
   'appSettings',
@@ -650,10 +666,10 @@ function updateSheetSetupUI() {
   if (!createButton) return;
 
   createButton.disabled = true;
-  createButton.textContent = 'à¹„à¸¡à¹ˆà¹ƒà¸Šà¹‰à¸‡à¸²à¸™ Google Sheets';
+  createButton.textContent = 'ไม่ใช้งาน Google Sheets';
 
   if (createInfo) {
-    createInfo.textContent = 'à¸£à¸°à¸šà¸šà¹ƒà¸Šà¹‰ Supabase à¹€à¸›à¹‡à¸™à¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸«à¸¥à¸±à¸ à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² Google Sheet';
+    createInfo.textContent = 'ระบบใช้ Supabase เป็นฐานข้อมูลหลัก ไม่ต้องตั้งค่า Google Sheet';
   }
 }
 
@@ -684,7 +700,7 @@ async function verifyCurrentSheetAccess() {
 
   if (!window.isGoogleSignedIn?.() || !window.checkSpreadsheetExists) {
     sheetAccessState.status = 'unverified';
-    sheetAccessState.message = 'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ Google à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸«à¹‰à¸£à¸°à¸šà¸šà¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸§à¹ˆà¸² Sheet ID à¹€à¸”à¸´à¸¡à¸¢à¸±à¸‡à¹ƒà¸Šà¹‰à¹„à¸”à¹‰';
+    sheetAccessState.message = 'เชื่อมต่อ Google เพื่อให้ระบบตรวจสอบว่า Sheet ID เดิมยังใช้ได้';
     updateSheetSetupUI();
     return;
   }
@@ -699,10 +715,10 @@ async function verifyCurrentSheetAccess() {
     sheetAccessState.message = result.title || compactId(sheetId);
   } else if (result.exists === false) {
     sheetAccessState.status = 'missing';
-    sheetAccessState.message = result.error || 'à¸•à¸£à¸§à¸ˆà¹„à¸¡à¹ˆà¸žà¸š Sheet ID à¹€à¸”à¸´à¸¡';
+    sheetAccessState.message = result.error || 'ตรวจไม่พบ Sheet ID เดิม';
   } else {
     sheetAccessState.status = 'unverified';
-    sheetAccessState.message = result.error || 'à¸¢à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š Sheet ID à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ';
+    sheetAccessState.message = result.error || 'ยังตรวจสอบ Sheet ID ไม่สำเร็จ';
   }
   updateSheetSetupUI();
 }
@@ -719,10 +735,10 @@ function updateSidebarUserProfile() {
   const studioEl = document.getElementById('sidebarUserStudio');
 
   if (emailEl) {
-    emailEl.textContent = user?.email || 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š';
+    emailEl.textContent = user?.email || 'ยังไม่ได้เข้าสู่ระบบ';
   }
   if (studioEl) {
-    studioEl.textContent = appSettingsState.studioName || 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²';
+    studioEl.textContent = appSettingsState.studioName || 'ยังไม่ได้ตั้งค่า';
   }
 }
 
@@ -764,9 +780,9 @@ function loadSettingsForm() {
   renderPackageSettings();
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    PACKAGES & PRICING
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 function getPackagesList() {
   try {
     return JSON.parse(appSettingsState.packages || '[]');
@@ -781,35 +797,35 @@ function renderPackageSettings() {
 
   const packages = getPackagesList();
   if (packages.length === 0) {
-    list.innerHTML = '<div class="settings-hint">à¹„à¸¡à¹ˆà¸¡à¸µà¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸£à¸²à¸„à¸²à¸‚à¸“à¸°à¸™à¸µà¹‰</div>';
+    list.innerHTML = '<div class="settings-hint">ไม่มีแพ็กเกจราคาขณะนี้</div>';
     return;
   }
 
   list.innerHTML = packages.map(pkg => `
     <div class="card" style="margin-bottom: 0; padding: 14px; background: rgba(5,5,5,0.4); border: 1px solid var(--border);">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">
-        <span style="font-weight: bold; color: var(--gold-light); font-size: 0.85rem;">à¹à¸žà¹‡à¸à¹€à¸à¸ˆ: ${appEscHtml(pkg.name)}</span>
-        <button class="action-btn del" type="button" data-pkg-action="delete" data-pkg-id="${appEscAttr(pkg.id)}" style="padding: 4px 8px; font-size: 0.75rem;">à¸¥à¸š</button>
+        <span style="font-weight: bold; color: var(--gold-light); font-size: 0.85rem;">แพ็กเกจ: ${appEscHtml(pkg.name)}</span>
+        <button class="action-btn del" type="button" data-pkg-action="delete" data-pkg-id="${appEscAttr(pkg.id)}" style="padding: 4px 8px; font-size: 0.75rem;">ลบ</button>
       </div>
       <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
         <div class="form-group">
-          <label>à¸Šà¸·à¹ˆà¸­à¹à¸žà¹‡à¸à¹€à¸à¸ˆ</label>
+          <label>ชื่อแพ็กเกจ</label>
           <input type="text" class="form-control" data-pkg-field="name" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.name)}" style="font-size: 0.8rem; padding: 8px;" />
         </div>
         <div class="form-group">
-          <label>à¸£à¸²à¸„à¸²à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™ (à¸šà¸²à¸—)</label>
+          <label>ราคาเริ่มต้น (บาท)</label>
           <input type="text" class="form-control" data-pkg-field="price" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.price)}" style="font-size: 0.8rem; padding: 8px;" />
         </div>
         <div class="form-group">
-          <label>à¸›à¹‰à¸²à¸¢à¸à¸³à¸à¸±à¸šà¸žà¸´à¹€à¸¨à¸© (Badge)</label>
+          <label>ป้ายกำกับพิเศษ (Badge)</label>
           <input type="text" class="form-control" data-pkg-field="badge" data-pkg-id="${appEscAttr(pkg.id)}" value="${appEscAttr(pkg.badge || '')}" style="font-size: 0.8rem; padding: 8px;" />
         </div>
         <div class="form-group full-span">
-          <label>à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸” / à¸„à¸¸à¸“à¸ªà¸¡à¸šà¸±à¸•à¸´ (à¸šà¸£à¸£à¸—à¸±à¸”à¸¥à¸° 1 à¸‚à¹‰à¸­)</label>
+          <label>รายละเอียด / คุณสมบัติ (บรรทัดละ 1 ข้อ)</label>
           <textarea class="form-control" data-pkg-field="features" data-pkg-id="${appEscAttr(pkg.id)}" rows="3" style="font-size: 0.8rem; padding: 8px; font-family: monospace;">${appEscHtml((pkg.features || []).join('\n'))}</textarea>
         </div>
       </div>
-      <button class="btn-primary" type="button" data-pkg-action="save" data-pkg-id="${appEscAttr(pkg.id)}" style="margin-top: 10px; padding: 6px 12px; font-size: 0.8rem; width: auto; align-self: flex-end;">à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸™à¸µà¹‰</button>
+      <button class="btn-primary" type="button" data-pkg-action="save" data-pkg-id="${appEscAttr(pkg.id)}" style="margin-top: 10px; padding: 6px 12px; font-size: 0.8rem; width: auto; align-self: flex-end;">บันทึกแพ็กเกจนี้</button>
     </div>
   `).join('');
 
@@ -824,9 +840,9 @@ function bindPackageActions(list) {
       const currentPkgs = getPackagesList();
 
       if (action === 'delete') {
-        if (!confirm('à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸¥à¸šà¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸™à¸µà¹‰à¹ƒà¸Šà¹ˆà¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?')) return;
+        if (!confirm('ต้องการลบแพ็กเกจนี้ใช่หรือไม่?')) return;
         const updated = currentPkgs.filter(p => p.id !== id);
-        await savePackagesState(updated, 'à¸¥à¸šà¹à¸žà¹‡à¸à¹€à¸à¸ˆà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§ âœ“');
+        await savePackagesState(updated, 'ลบแพ็กเกจเรียบร้อยแล้ว ✓');
       } else if (action === 'save') {
         const nameVal = list.querySelector(`[data-pkg-field="name"][data-pkg-id="${id}"]`).value.trim();
         const priceVal = list.querySelector(`[data-pkg-field="price"][data-pkg-id="${id}"]`).value.trim();
@@ -834,7 +850,7 @@ function bindPackageActions(list) {
         const featuresVal = list.querySelector(`[data-pkg-field="features"][data-pkg-id="${id}"]`).value.trim();
 
         if (!nameVal) {
-          showToast('à¸Šà¸·à¹ˆà¸­à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸«à¹‰à¸²à¸¡à¸§à¹ˆà¸²à¸‡', 'error');
+          showToast('ชื่อแพ็กเกจห้ามว่าง', 'error');
           return;
         }
 
@@ -851,7 +867,7 @@ function bindPackageActions(list) {
           return p;
         });
 
-        await savePackagesState(updated, 'à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸à¹‰à¹„à¸‚à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢ âœ“');
+        await savePackagesState(updated, 'บันทึกแก้ไขแพ็กเกจเรียบร้อย ✓');
       }
     });
   });
@@ -869,7 +885,7 @@ async function addPackageSetting() {
   const featuresStr = featuresEl?.value.trim() || '';
 
   if (!name) {
-    showToast('à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸à¸Šà¸·à¹ˆà¸­à¹à¸žà¹‡à¸à¹€à¸à¸ˆ', 'error');
+    showToast('กรุณากรอกชื่อแพ็กเกจ', 'error');
     return;
   }
 
@@ -879,7 +895,7 @@ async function addPackageSetting() {
 
   const updated = [...currentPkgs, { id: newId, name, price, badge, features }];
 
-  const success = await savePackagesState(updated, 'à¹€à¸žà¸´à¹ˆà¸¡à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢ âœ“');
+  const success = await savePackagesState(updated, 'เพิ่มแพ็กเกจเรียบร้อย ✓');
   if (success) {
     if (nameEl) nameEl.value = '';
     if (priceEl) priceEl.value = '';
@@ -891,7 +907,7 @@ async function addPackageSetting() {
 async function savePackagesState(updatedPackages, successMessage) {
   const token = localStorage.getItem('manager_token');
   if (!token) {
-    showToast('à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²', 'error');
+    showToast('กรุณา Login ก่อนบันทึกการตั้งค่า', 'error');
     return false;
   }
 
@@ -902,7 +918,7 @@ async function savePackagesState(updatedPackages, successMessage) {
 
   const apiBase = (typeof API_BASE !== 'undefined' ? API_BASE : null)
     || window.APP_CONFIG?.API_BASE
-    || ((window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api'));
+    || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api');
 
   try {
     const res = await fetch(`${apiBase}/settings`, {
@@ -910,13 +926,13 @@ async function savePackagesState(updatedPackages, successMessage) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ settings: { packages: packagesJson } }),
     });
-    if (!res.ok) throw new Error((await res.json()).error || 'à¸šà¸±à¸™à¸—à¸¶à¸à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§');
+    if (!res.ok) throw new Error((await res.json()).error || 'บันทึกล้มเหลว');
     showToast(successMessage, 'success');
     return true;
   } catch (e) {
     setSettingsState({ packages: previous });
     renderPackageSettings();
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸žà¹‡à¸à¹€à¸à¸ˆà¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§: ' + e.message, 'error');
+    showToast('บันทึกแพ็กเกจล้มเหลว: ' + e.message, 'error');
     return false;
   }
 }
@@ -957,7 +973,7 @@ function renderJobTypeSettings() {
 
   const activeTypes = (appSettingsState.jobTypes || []).filter(type => type.active !== false);
   if (!activeTypes.length) {
-    list.innerHTML = '<div class="job-type-empty">à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™</div>';
+    list.innerHTML = '<div class="job-type-empty">ยังไม่มีประเภทงาน</div>';
     return;
   }
 
@@ -965,17 +981,17 @@ function renderJobTypeSettings() {
   list.innerHTML = activeTypes.map(type => `
     <div class="job-type-row">
       <div class="job-type-field">
-        <label>à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™</label>
+        <label>ประเภทงาน</label>
         <input
           type="text"
           class="form-control"
           id="jobTypeLabel_${appEscAttr(type.id)}"
           value="${appEscAttr(type.label)}"
-          aria-label="à¸Šà¸·à¹ˆà¸­à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™ ${appEscAttr(type.label)}"
+          aria-label="ชื่อประเภทงาน ${appEscAttr(type.label)}"
         />
       </div>
       <div class="job-type-field job-type-delivery-field">
-        <label>à¸ªà¹ˆà¸‡à¹ƒà¸™à¸à¸µà¹ˆà¸§à¸±à¸™</label>
+        <label>ส่งในกี่วัน</label>
         <input
           type="number"
           class="form-control"
@@ -983,11 +999,11 @@ function renderJobTypeSettings() {
           min="0"
           step="1"
           value="${normalizeDeliveryDays(type.deliveryDays)}"
-          aria-label="à¸ˆà¸³à¸™à¸§à¸™à¸§à¸±à¸™à¸ªà¹ˆà¸‡à¸‡à¸²à¸™ ${appEscAttr(type.label)}"
+          aria-label="จำนวนวันส่งงาน ${appEscAttr(type.label)}"
         />
       </div>
-      <button class="action-btn" type="button" data-job-type-action="save" data-job-type-id="${appEscAttr(type.id)}">à¸šà¸±à¸™à¸—à¸¶à¸</button>
-      <button class="action-btn del" type="button" data-job-type-action="remove" data-job-type-id="${appEscAttr(type.id)}" ${canRemove ? '' : 'disabled'}>à¸¥à¸š</button>
+      <button class="action-btn" type="button" data-job-type-action="save" data-job-type-id="${appEscAttr(type.id)}">บันทึก</button>
+      <button class="action-btn del" type="button" data-job-type-action="remove" data-job-type-id="${appEscAttr(type.id)}" ${canRemove ? '' : 'disabled'}>ลบ</button>
     </div>
   `).join('');
   bindJobTypeSettingsActions(list);
@@ -1030,7 +1046,7 @@ function refreshJobTypeViews() {
 async function persistJobTypeSettings(nextTypes, successMessage) {
   const token = localStorage.getItem('manager_token');
   if (!token) {
-    showToast('à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¹à¸à¹‰à¹„à¸‚à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™', 'error');
+    showToast('กรุณา Login ก่อนแก้ไขประเภทงาน', 'error');
     return false;
   }
 
@@ -1040,7 +1056,7 @@ async function persistJobTypeSettings(nextTypes, successMessage) {
 
   const apiBase = (typeof API_BASE !== 'undefined' ? API_BASE : null)
     || window.APP_CONFIG?.API_BASE
-    || ((window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api'));
+    || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api');
 
   try {
     const res = await fetch(`${apiBase}/settings`, {
@@ -1048,13 +1064,13 @@ async function persistJobTypeSettings(nextTypes, successMessage) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ settings: { job_types: JSON.stringify(appSettingsState.jobTypes) } }),
     });
-    if (!res.ok) throw new Error((await res.json()).error || 'à¸šà¸±à¸™à¸—à¸¶à¸à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§');
-    showToast(successMessage || 'à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§ âœ“', 'success');
+    if (!res.ok) throw new Error((await res.json()).error || 'บันทึกล้มเหลว');
+    showToast(successMessage || 'บันทึกประเภทงานแล้ว ✓', 'success');
     return true;
   } catch (e) {
     setSettingsState(previous, { replace: true });
     refreshJobTypeViews();
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + (e.message || e), 'error');
+    showToast('บันทึกประเภทงานไม่สำเร็จ: ' + (e.message || e), 'error');
     return false;
   }
 }
@@ -1063,7 +1079,7 @@ async function addJobTypeSetting() {
   const input = document.getElementById('newJobTypeLabel');
   const label = input?.value.trim() || '';
   if (!label) {
-    showToast('à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆà¸Šà¸·à¹ˆà¸­à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™', 'error');
+    showToast('กรุณาใส่ชื่อประเภทงาน', 'error');
     return;
   }
 
@@ -1071,7 +1087,7 @@ async function addJobTypeSetting() {
   const existing = nextTypes.find(type => type.label.trim().toLowerCase() === label.toLowerCase());
   if (existing) {
     if (existing.active !== false) {
-      showToast('à¸¡à¸µà¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸™à¸µà¹‰à¸­à¸¢à¸¹à¹ˆà¹à¸¥à¹‰à¸§', 'error');
+      showToast('มีประเภทงานนี้อยู่แล้ว', 'error');
       return;
     }
     existing.active = true;
@@ -1085,7 +1101,7 @@ async function addJobTypeSetting() {
     });
   }
 
-  const saved = await persistJobTypeSettings(nextTypes, 'à¹€à¸žà¸´à¹ˆà¸¡à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§ âœ“');
+  const saved = await persistJobTypeSettings(nextTypes, 'เพิ่มประเภทงานแล้ว ✓');
   if (saved && input) input.value = '';
 }
 
@@ -1095,14 +1111,14 @@ async function saveJobTypeSetting(typeId) {
   const deliveryInput = document.getElementById(`jobTypeDelivery_${id}`);
   const label = input?.value.trim() || '';
   if (!id || !label) {
-    showToast('à¸Šà¸·à¹ˆà¸­à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸«à¹‰à¸²à¸¡à¸§à¹ˆà¸²à¸‡', 'error');
+    showToast('ชื่อประเภทงานห้ามว่าง', 'error');
     return;
   }
 
   const nextTypes = cloneJobTypes(appSettingsState.jobTypes);
   const duplicate = nextTypes.find(type => type.id !== id && type.active !== false && type.label.trim().toLowerCase() === label.toLowerCase());
   if (duplicate) {
-    showToast('à¸¡à¸µà¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸Šà¸·à¹ˆà¸­à¸™à¸µà¹‰à¸­à¸¢à¸¹à¹ˆà¹à¸¥à¹‰à¸§', 'error');
+    showToast('มีประเภทงานชื่อนี้อยู่แล้ว', 'error');
     return;
   }
 
@@ -1110,7 +1126,7 @@ async function saveJobTypeSetting(typeId) {
   if (!target) return;
   target.label = label;
   target.deliveryDays = normalizeDeliveryDays(deliveryInput?.value, target.deliveryDays ?? DEFAULT_DELIVERY_DAYS);
-  await persistJobTypeSettings(nextTypes, 'à¸šà¸±à¸™à¸—à¸¶à¸à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¹à¸¥à¸°à¸à¸³à¸«à¸™à¸”à¸ªà¹ˆà¸‡à¹à¸¥à¹‰à¸§ âœ“');
+  await persistJobTypeSettings(nextTypes, 'บันทึกประเภทงานและกำหนดส่งแล้ว ✓');
 }
 
 async function removeJobTypeSetting(typeId) {
@@ -1118,14 +1134,14 @@ async function removeJobTypeSetting(typeId) {
   const nextTypes = cloneJobTypes(appSettingsState.jobTypes);
   const activeCount = nextTypes.filter(type => type.active !== false).length;
   if (activeCount <= 1) {
-    showToast('à¸•à¹‰à¸­à¸‡à¹€à¸«à¸¥à¸·à¸­à¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£', 'error');
+    showToast('ต้องเหลือประเภทงานอย่างน้อย 1 รายการ', 'error');
     return;
   }
 
   const target = nextTypes.find(type => type.id === id);
   if (!target) return;
   target.active = false;
-  await persistJobTypeSettings(nextTypes, 'à¸¥à¸šà¸›à¸£à¸°à¹€à¸ à¸—à¸‡à¸²à¸™à¸­à¸­à¸à¸ˆà¸²à¸ dropdown à¹à¸¥à¹‰à¸§ âœ“');
+  await persistJobTypeSettings(nextTypes, 'ลบประเภทงานออกจาก dropdown แล้ว ✓');
 }
 
 function appEscHtml(value) {
@@ -1146,7 +1162,7 @@ function saveSettings() {
 async function saveBusinessInfo() {
   const token = localStorage.getItem('manager_token');
   if (!token) {
-    showToast('à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²', 'error');
+    showToast('กรุณา Login ก่อนบันทึกการตั้งค่า', 'error');
     return;
   }
   const previous = getSettings();
@@ -1168,7 +1184,7 @@ async function saveBusinessInfo() {
 
   const apiBase = (typeof API_BASE !== 'undefined' ? API_BASE : null)
     || window.APP_CONFIG?.API_BASE
-    || ((window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api'));
+    || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://oracatapi.onrender.com/api');
 
   try {
     const res = await fetch(`${apiBase}/settings`, {
@@ -1189,24 +1205,24 @@ async function saveBusinessInfo() {
         thunder_token: s.thunder_token,
       }}),
     });
-    if (!res.ok) throw new Error((await res.json()).error || 'à¸šà¸±à¸™à¸—à¸¶à¸à¸¥à¹‰à¸¡à¹€à¸«à¸¥à¸§');
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸˜à¸¸à¸£à¸à¸´à¸ˆà¹„à¸›à¸¢à¸±à¸‡à¸£à¸°à¸šà¸šà¸à¸²à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¹‰à¸§ âœ“', 'success');
+    if (!res.ok) throw new Error((await res.json()).error || 'บันทึกล้มเหลว');
+    showToast('บันทึกข้อมูลธุรกิจไปยังระบบฐานข้อมูลแล้ว ✓', 'success');
   } catch (e) {
     setSettingsState(previous, { replace: true });
     loadSettingsForm();
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸˜à¸¸à¸£à¸à¸´à¸ˆà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + (e.message || e), 'error');
+    showToast('บันทึกข้อมูลธุรกิจไม่สำเร็จ: ' + (e.message || e), 'error');
   }
 }
 
 async function saveGoogleSheetSettings() {
   if (!window.firebaseData?.isReady?.()) {
-    showToast('à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¸šà¸±à¸™à¸—à¸¶à¸ Google Sheet ID', 'error');
+    showToast('กรุณา Login ก่อนบันทึก Google Sheet ID', 'error');
     return;
   }
   const input = document.getElementById('settingSheetId');
   const sheetId = getSpreadsheetId(input?.value || '');
   if (!sheetId) {
-    showToast('à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆ Google Sheet ID à¸à¹ˆà¸­à¸™', 'error');
+    showToast('กรุณาใส่ Google Sheet ID ก่อน', 'error');
     return;
   }
 
@@ -1221,18 +1237,18 @@ async function saveGoogleSheetSettings() {
     scheduleSheetAccessCheck();
     enforceSheetSetupGate();
     showPage('dashboard', { quietGate: true });
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸ Google Sheet ID à¹„à¸› Firebase à¹à¸¥à¹‰à¸§ âœ“', 'success');
+    showToast('บันทึก Google Sheet ID ไป Firebase แล้ว ✓', 'success');
   } catch (e) {
     setSettingsState(previous, { replace: true });
     loadSettingsForm();
     console.error('Save Sheet ID to Firebase failed:', e);
-    showToast('à¸šà¸±à¸™à¸—à¸¶à¸ Sheet ID à¹„à¸› Firebase à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + (e.message || e), 'error');
+    showToast('บันทึก Sheet ID ไป Firebase ไม่สำเร็จ: ' + (e.message || e), 'error');
   }
 }
 
 async function createBookingSheetFromSettings() {
   if (!window.firebaseData?.isReady?.()) {
-    showToast('à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¸ªà¸£à¹‰à¸²à¸‡ Google Sheet', 'error');
+    showToast('กรุณา Login ก่อนสร้าง Google Sheet', 'error');
     return;
   }
 
@@ -1240,7 +1256,7 @@ async function createBookingSheetFromSettings() {
   if (existingId && sheetAccessState.status !== 'missing') {
     await verifyCurrentSheetAccess();
     if (configuredSheetId() && sheetAccessState.status !== 'missing') {
-      showToast('à¸¡à¸µ Google Sheet ID à¸—à¸µà¹ˆà¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸­à¸¢à¸¹à¹ˆà¹à¸¥à¹‰à¸§ à¸£à¸°à¸šà¸šà¸ˆà¸°à¹ƒà¸«à¹‰à¸ªà¸£à¹‰à¸²à¸‡à¹ƒà¸«à¸¡à¹ˆà¹€à¸¡à¸·à¹ˆà¸­ ID à¹€à¸”à¸´à¸¡à¸•à¸£à¸§à¸ˆà¹„à¸¡à¹ˆà¸žà¸š', 'error');
+      showToast('มี Google Sheet ID ที่ใช้งานอยู่แล้ว ระบบจะให้สร้างใหม่เมื่อ ID เดิมตรวจไม่พบ', 'error');
       return;
     }
   }
@@ -1251,11 +1267,11 @@ async function createBookingSheetFromSettings() {
 
   try {
     if (!window.createBookingSpreadsheet) {
-      throw new Error('Google Sheets API à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸žà¸£à¹‰à¸­à¸¡à¹ƒà¸Šà¹‰à¸‡à¸²à¸™');
+      throw new Error('Google Sheets API ยังไม่พร้อมใช้งาน');
     }
     const result = await window.createBookingSpreadsheet({ title: 'Booking' });
     const sheetId = getSpreadsheetId(result?.id || result?.spreadsheetId || '');
-    if (!sheetId) throw new Error('à¸ªà¸£à¹‰à¸²à¸‡ Sheet à¹à¸¥à¹‰à¸§à¹à¸•à¹ˆà¹„à¸¡à¹ˆà¸žà¸š spreadsheetId');
+    if (!sheetId) throw new Error('สร้าง Sheet แล้วแต่ไม่พบ spreadsheetId');
 
     const previous = getSettings();
     const input = document.getElementById('settingSheetId');
@@ -1276,10 +1292,10 @@ async function createBookingSheetFromSettings() {
     updateSheetSyncInfo();
     updateSheetSetupUI();
     showPage('dashboard', { quietGate: true });
-    showToast('à¸ªà¸£à¹‰à¸²à¸‡ Booking Sheet à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸ Sheet ID à¹à¸¥à¹‰à¸§ âœ“', 'success');
+    showToast('สร้าง Booking Sheet และบันทึก Sheet ID แล้ว ✓', 'success');
   } catch (error) {
     console.error('Create Booking Sheet failed:', error);
-    showToast('à¸ªà¸£à¹‰à¸²à¸‡ Booking Sheet à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + (error.message || error), 'error');
+    showToast('สร้าง Booking Sheet ไม่สำเร็จ: ' + (error.message || error), 'error');
   } finally {
     if (button) button.dataset.busy = '0';
     updateSheetSetupUI();
@@ -1287,7 +1303,7 @@ async function createBookingSheetFromSettings() {
 }
 
 function applyCloudSettings(settings) {
-  // Normalize Express API snake_case field names â†’ internal camelCase state
+  // Normalize Express API snake_case field names → internal camelCase state
   const raw = settings || {};
   const normalized = {
     ...raw,
@@ -1360,13 +1376,13 @@ function updateSheetSyncInfo() {
   const isLoggedIn = Boolean(localStorage.getItem('manager_token'));
 
   const settingsEl = document.getElementById('sheetSyncInfo');
-  if (settingsEl) settingsEl.textContent = 'à¸£à¸°à¸šà¸šà¸™à¸µà¹‰à¹ƒà¸Šà¹‰ Supabase à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡ Sync Google Sheets';
+  if (settingsEl) settingsEl.textContent = 'ระบบนี้ใช้ Supabase ไม่ต้อง Sync Google Sheets';
 
   const sheetSettingEl = document.getElementById('sheetSettingInfo');
   if (sheetSettingEl) {
     sheetSettingEl.textContent = isLoggedIn
-      ? 'à¸£à¸°à¸šà¸šà¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ Supabase â€” à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² Google Sheet'
-      : 'à¸à¸£à¸¸à¸“à¸² Login à¸à¹ˆà¸­à¸™à¹ƒà¸Šà¹‰à¸‡à¸²à¸™';
+      ? 'ระบบเชื่อมต่อ Supabase — ไม่ต้องตั้งค่า Google Sheet'
+      : 'กรุณา Login ก่อนใช้งาน';
   }
   updateSheetSetupUI();
 }
@@ -1419,7 +1435,7 @@ function clearAppData(options = {}) {
   if (options.clearPersistent) clearPersistentAppData();
   updateSheetSyncInfo();
   refreshAppData();
-  if (!options.quiet) showToast('à¸¥à¹‰à¸²à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸«à¸™à¹‰à¸²à¹€à¸§à¹‡à¸šà¹à¸¥à¹‰à¸§');
+  if (!options.quiet) showToast('ล้างข้อมูลหน้าเว็บแล้ว');
 }
 
 window.applyCloudSettings = applyCloudSettings;
@@ -1436,9 +1452,9 @@ window.scheduleSheetAccessCheck = scheduleSheetAccessCheck;
 window.updateLoginGate = updateLoginGate;
 window.handleLoginGateAuth = handleLoginGateAuth;
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    TOAST NOTIFICATIONS
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 let toastTimer = null;
 function showToast(msg, type = '') {
   const el = document.getElementById('toast');
@@ -1451,9 +1467,9 @@ function showToast(msg, type = '') {
 
 window.showToast = showToast;
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ──────────────────────────────────────────────────────────
    KEYBOARD SHORTCUTS
-   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+   ────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeLoginAlertModal();
@@ -1466,4 +1482,3 @@ document.addEventListener('keydown', e => {
     openJobModal();
   }
 });
-
