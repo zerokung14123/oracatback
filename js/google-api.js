@@ -499,7 +499,7 @@ async function syncCalendar(options = {}) {
       const end   = job.endTime   ? `${job.date}T${job.endTime}:00`   : `${job.date}T13:00:00`;
 
       const event = {
-        summary: `📷 ${JOB_TYPE_LABELS[job.type] || job.type} — ${job.client}`,
+        summary: `[Oracat] ${JOB_TYPE_LABELS[job.type] || job.type} — ${job.client}`,
         location: job.location,
         description: `ราคา: ${formatCurrency(job.price)}\nมัดจำ: ${formatCurrency(job.deposit)}\nสถานะ: ${STATUS_LABELS[job.status] || job.status}\n\n${job.note || ''}`,
         start: { dateTime: start, timeZone: 'Asia/Bangkok' },

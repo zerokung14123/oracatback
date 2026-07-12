@@ -119,6 +119,30 @@ function setupStaticEventHandlers() {
   bookingPreviewModal?.addEventListener('click', event => {
     if (event.target === bookingPreviewModal) closeBookingPreviewModal();
   });
+
+  // Handle Login Form Submit
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      
+      setLoginGateBusy(true, 'กำลังเข้าสู่ระบบ...');
+      setLoginGateStatus('กำลังตรวจสอบชื่อผู้ใช้งานและรหัสผ่าน...');
+      
+      try {
+        const user = await window.firebaseData.login(username, password);
+        localStorage.setItem('oracat_logged_in', 'true');
+        localStorage.setItem('oracat_last_activity', Date.now().toString());
+        updateLoginGate(user);
+        showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ!', 'success');
+      } catch (err) {
+        updateLoginGate(null, { message: err.message || 'เข้าสู่ระบบล้มเหลว' });
+        showToast(err.message || 'เข้าสู่ระบบล้มเหลว', 'error');
+      }
+    });
+  }
 }
 
 function bindClick(id, handler) {
@@ -318,7 +342,9 @@ function closeLoginAlertModal() {
    ────────────────────────────────────────────────────────── */
 const PAGE_TITLES = {
   dashboard: 'Dashboard',
+  bookings: 'คำขอจองคิวงาน',
   queue: 'คิวงาน',
+  gallery: 'จัดการคลังรูปภาพผลงาน',
   revenue: 'รายรับ',
   tax: 'โปรแกรมคำนวณภาษี',
   documents: 'เอกสาร',
@@ -355,7 +381,9 @@ function showPage(page, options = {}) {
 
   // Page-specific refresh
   if (target === 'dashboard') { updateDashboard(); }
+  if (target === 'bookings') { window.refreshBookingsTab?.(); }
   if (target === 'queue') { renderQueueTable(); }
+  if (target === 'gallery') { window.refreshGalleryTab?.(); }
   if (target === 'revenue') { renderRevenue(); }
   if (target === 'tax') { window.renderTaxCalculator?.(); }
   if (target === 'documents') { refreshBookingDocumentJobs(); }
@@ -444,6 +472,10 @@ function defaultSettings() {
     jobTypes: cloneJobTypes(DEFAULT_JOB_TYPES),
     lastSheetSync: null,
     taxPaidReminders: [],
+    welcome_title: '',
+    welcome_subtitle: '',
+    promptpay_id: '',
+    thunder_token: '',
   };
 }
 
@@ -465,6 +497,12 @@ function setSettingsState(settings = {}, options = {}) {
   appSettingsState.jobTypes = normalizeJobTypeSettings(next.jobTypes);
   appSettingsState.lastSheetSync = next.lastSheetSync || null;
   appSettingsState.taxPaidReminders = normalizeTaxPaidReminders(next.taxPaidReminders);
+  
+  // Custom API integrations state mapping
+  appSettingsState.welcome_title = String(next.welcome_title || '');
+  appSettingsState.welcome_subtitle = String(next.welcome_subtitle || '');
+  appSettingsState.promptpay_id = String(next.promptpay_id || '');
+  appSettingsState.thunder_token = String(next.thunder_token || '');
 
   syncJobTypeLabels(appSettingsState.jobTypes);
   CONFIG.SHEET_ID = appSettingsState.sheetId;
@@ -684,6 +722,17 @@ function loadSettingsForm() {
   if (bookingTermsInput) bookingTermsInput.value = s.bookingTerms || '';
   if (hourRateInput) hourRateInput.value = s.hourRate || '';
   if (sheetIdInput) sheetIdInput.value = s.sheetId || '';
+
+  // Expose additional settings
+  const wtInput = document.getElementById('settingWelcomeTitle');
+  if (wtInput) wtInput.value = s.welcome_title || '';
+  const wsInput = document.getElementById('settingWelcomeSubtitle');
+  if (wsInput) wsInput.value = s.welcome_subtitle || '';
+  const ppInput = document.getElementById('settingPromptPay');
+  if (ppInput) ppInput.value = s.promptpay_id || '';
+  const ttInput = document.getElementById('settingThunderToken');
+  if (ttInput) ttInput.value = s.thunder_token || '';
+
   renderJobTypeSettings();
   renderJobTypeSelect();
   updateSheetSyncInfo();
@@ -915,6 +964,13 @@ async function saveBusinessInfo() {
   s.facebook = document.getElementById('settingFacebook')?.value.trim() || '';
   s.bookingTerms = document.getElementById('settingBookingTerms')?.value.trim() || '';
   s.hourRate = Number(document.getElementById('settingHourRate').value) || 1500;
+  
+  // Expose PromptPay and Thunder settings
+  s.welcome_title = document.getElementById('settingWelcomeTitle')?.value.trim() || '';
+  s.welcome_subtitle = document.getElementById('settingWelcomeSubtitle')?.value.trim() || '';
+  s.promptpay_id = document.getElementById('settingPromptPay')?.value.trim() || '';
+  s.thunder_token = document.getElementById('settingThunderToken')?.value.trim() || '';
+
   setSettingsState(s);
   try {
     await window.firebaseData.saveSettings({
@@ -924,8 +980,12 @@ async function saveBusinessInfo() {
       facebook: s.facebook,
       bookingTerms: s.bookingTerms,
       hourRate: s.hourRate,
+      welcome_title: s.welcome_title,
+      welcome_subtitle: s.welcome_subtitle,
+      promptpay_id: s.promptpay_id,
+      thunder_token: s.thunder_token,
     });
-    showToast('บันทึกข้อมูลธุรกิจไป Firebase แล้ว ✓', 'success');
+    showToast('บันทึกข้อมูลธุรกิจไปยังระบบฐานข้อมูลแล้ว ✓', 'success');
   } catch (e) {
     setSettingsState(previous, { replace: true });
     loadSettingsForm();
@@ -1038,6 +1098,16 @@ function applyCloudSettings(settings) {
   if (bookingTermsInput) bookingTermsInput.value = appSettingsState.bookingTerms || '';
   const hourRateInput = document.getElementById('settingHourRate');
   if (hourRateInput) hourRateInput.value = appSettingsState.hourRate || '';
+
+  // Expose additional settings
+  const wtInput = document.getElementById('settingWelcomeTitle');
+  if (wtInput) wtInput.value = appSettingsState.welcome_title || '';
+  const wsInput = document.getElementById('settingWelcomeSubtitle');
+  if (wsInput) wsInput.value = appSettingsState.welcome_subtitle || '';
+  const ppInput = document.getElementById('settingPromptPay');
+  if (ppInput) ppInput.value = appSettingsState.promptpay_id || '';
+  const ttInput = document.getElementById('settingThunderToken');
+  if (ttInput) ttInput.value = appSettingsState.thunder_token || '';
   renderJobTypeSettings();
   renderJobTypeSelect();
   updateSheetSyncInfo();

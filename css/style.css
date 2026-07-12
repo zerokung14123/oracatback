@@ -3079,3 +3079,61 @@ html[data-theme="light"] .tax-investment-controls button {
   border-color: rgba(201,147,57,0.28);
   color: var(--gold-light);
 }
+
+/* ===== CUSTOM BADGES & BOOKINGS STYLING ===== */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-align: center;
+  white-space: nowrap;
+}
+.status-badge.status-pending {
+  background: rgba(216, 183, 108, 0.15);
+  color: var(--gold-light);
+  border: 1px solid rgba(216, 183, 108, 0.3);
+}
+.status-badge.status-confirmed {
+  background: rgba(116, 217, 138, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(116, 217, 138, 0.3);
+}
+.status-badge.status-cancelled {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ===== GALLERY LAYOUT ===== */
+.gallery-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+#galleryGrid {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-gold) transparent;
+}
+#galleryGrid::-webkit-scrollbar {
+  width: 6px;
+}
+#galleryGrid::-webkit-scrollbar-thumb {
+  background-color: var(--border-gold);
+  border-radius: 3px;
+}
