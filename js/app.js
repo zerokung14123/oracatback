@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupStaticEventHandlers() {
-  bindClick('loginGoogleBtn', () => handleLoginGateAuth());
   bindClick('googleAuthBtn', () => handleGoogleAuth());
   bindClick('menuToggleBtn', () => toggleSidebar());
   bindClick('syncAllBtn', () => syncAll());
@@ -199,7 +198,7 @@ function updateLoginGate(user = null, options = {}) {
   document.body.classList.add('auth-locked');
   document.body.classList.remove('auth-pending', 'auth-ready');
   setLoginGateBusy(false);
-  setLoginGateStatus(options.message || 'กรุณาเข้าสู่ระบบด้วย Google เพื่อใช้งาน Oracat Manager');
+  setLoginGateStatus(options.message || 'กรุณาระบุชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าใช้งาน Oracat Manager');
 }
 
 async function handleLoginGateAuth() {
