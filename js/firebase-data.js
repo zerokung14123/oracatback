@@ -38,26 +38,11 @@ function getJobsCollectionName() {
 
 function updateFirebaseAuthUI(user) {
   const activeUser = user !== undefined ? user : currentUser();
-  const btn = document.getElementById('googleAuthBtn');
-  const label = document.getElementById('googleAuthLabel');
-  const status = document.getElementById('syncStatus');
 
   if (activeUser) {
-    if (label) label.textContent = 'เชื่อมต่อ Google สำเร็จ';
-    if (btn) btn.style.borderColor = 'rgba(94,184,106,0.4)';
-    if (status) {
-      status.textContent = '● เข้าระบบและเชื่อมต่อคิวแล้ว';
-      status.className = 'sync-status connected';
-    }
     window.updateSidebarUserProfile?.();
     window.updateLoginGate?.({ email: activeUser.username, displayName: activeUser.displayName });
   } else {
-    if (label) label.textContent = 'เชื่อมต่อ Google';
-    if (btn) btn.style.borderColor = '';
-    if (status) {
-      status.textContent = '● ยังไม่ได้เชื่อมต่อ Google';
-      status.className = 'sync-status';
-    }
     window.updateSidebarUserProfile?.();
     window.updateLoginGate?.(null);
   }

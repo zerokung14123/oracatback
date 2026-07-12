@@ -81,7 +81,7 @@ const googleOAuthV3 = (() => {
         });
         
         markActivity();
-        window.firebaseData?.updateAuthUI?.();
+        window.updateAuthUI?.();
         showToast('เชื่อมต่อ Google สำเร็จ ✓', 'success');
       }
     });
@@ -104,7 +104,7 @@ const googleOAuthV3 = (() => {
     writeSession({});
     localStorage.removeItem(ACTIVITY_KEY);
     window.clearGoogleAccessToken?.({ revoke: false });
-    window.firebaseData?.updateAuthUI?.();
+    window.updateAuthUI?.();
     if (!options.quiet) showToast('ยกเลิกการเชื่อมต่อ Google แล้ว');
   }
 
@@ -134,7 +134,7 @@ const googleOAuthV3 = (() => {
       return false;
     }
     window.applyGoogleAccessToken?.(session.accessToken, { source: 'init-session' });
-    window.firebaseData?.updateAuthUI?.();
+    window.updateAuthUI?.();
     return true;
   }
 
